@@ -1,0 +1,29 @@
+{
+  // ---------- Node / JS / TS ----------
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "javascript.suggest.autoImports": true,
+  "typescript.suggest.autoImports": true,
+
+  // ---------- EXCLUDE RUST OUTSIDE src-tauri ----------
+  // "files.exclude": {
+  //   "**/*.rs": true
+  // },
+
+  // ---------- ALLOW RUST ONLY IN src-tauri ----------
+  "files.associations": {
+    "src-tauri/src/**/*.rs": "rust"
+  },
+
+  // ---------- Rust Analyzer ONLY for src-tauri ----------
+  "rust-analyzer.linkedProjects": [
+    "src-tauri/Cargo.toml"
+  ],
+
+  // ---------- PERFORMANCE ----------
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/build": true,
+    "**/target":true
+  }
+}
