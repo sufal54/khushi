@@ -1,5 +1,6 @@
 "use client";
 
+import { useStore } from "@/context/StoreContext";
 import { invoke } from "@tauri-apps/api/core";
 import {
   FormEvent,
@@ -60,10 +61,24 @@ const METHOD_COLOR: Record<string, string> = {
 };
 
 export function ApiTester() {
+  const { tabs: tabGroups, addTab: addStoreTab, updateTab, removeTab } = useStore();
+
+  const GROUP = "tabs";
+  const tabs = tabGroups[GROUP] ?? [];
+
+
+
   const [showHeaders, setShowHeaders] = useState(true);
   const [activeResponseTab, setActiveResponseTab] = useState<"body" | "headers" | "cookies" | null>("body");
-  const [tabs, setTabs] = useState<RequestTab[]>(() => [
-    {
+
+
+  const [activeTabId, setActiveTabId] = useState<string | null>(
+    tabs[0]?.id ?? null
+  );
+
+
+  const activeTab = useMemo(
+    () => tabs.find(t => t.id === activeTabId) ?? {
       id: crypto.randomUUID(),
       name: "Request 1",
       method: "GET",
@@ -74,13 +89,10 @@ export function ApiTester() {
       error: null,
       loading: false,
     },
-  ]);
-
-  const [activeTabId, setActiveTabId] = useState(tabs[0].id);
-  const activeTab = useMemo(
-    () => tabs.find(t => t.id === activeTabId)!,
     [tabs, activeTabId]
   );
+
+
 
   const containerRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
@@ -121,6 +133,25 @@ export function ApiTester() {
   }, [activeTab.response]);
 
   useEffect(() => {
+    if (tabs.length === 0) {
+      const tab: RequestTab = {
+        id: crypto.randomUUID(),
+        name: "Request 1",
+        method: "GET",
+        url: "https://jsonplaceholder.typicode.com/posts/1",
+        headers: [],
+        body: "",
+        response: null,
+        error: null,
+        loading: false,
+      };
+
+      addStoreTab(GROUP, tab);
+      setActiveTabId(tab.id);
+    }
+  }, [tabs.length]);
+
+  useEffect(() => {
     const onMove = (e: MouseEvent) => {
       if (!isDragging.current || !containerRef.current) return;
 
@@ -146,32 +177,25 @@ export function ApiTester() {
   }, []);
 
 
-  const addTab = () => {
-    setTabs(t => [
-      ...t,
-      {
-        id: crypto.randomUUID(),
-        name: `Request ${t.length + 1}`,
-        method: "GET",
-        url: "",
-        headers: [],
-        body: "",
-        response: null,
-        error: null,
-        loading: false,
-      },
-    ]);
-    setActiveTabId(prev => prev);
+  const addTabLocal = () => {
+    const tab: RequestTab = {
+      id: crypto.randomUUID(),
+      name: `Request ${tabs.length + 1}`,
+      method: "GET",
+      url: "",
+      headers: [],
+      body: "",
+      response: null,
+      error: null,
+      loading: false,
+    };
+
+    addStoreTab(GROUP, tab);
+    setActiveTabId(tab.id);
   };
 
   const closeTab = (id: string) => {
-    setTabs(t => {
-      const next = t.filter(tab => tab.id !== id);
-      if (id === activeTabId && next.length) {
-        setActiveTabId(next[0].id);
-      }
-      return next;
-    });
+    removeTab(GROUP, id);
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -227,15 +251,22 @@ export function ApiTester() {
       ...t,
       headers: t.headers.filter(h => h.id !== id)
     }));
-  const updateActiveTab = (
-    updater: (tab: RequestTab) => RequestTab
-  ) => {
-    setTabs(prev =>
-      prev.map(tab =>
-        tab.id === activeTabId ? updater(tab) : tab
-      )
-    );
+  const updateActiveTab = (updater: (t: RequestTab) => RequestTab) => {
+    if (!activeTab) return;
+    updateTab(GROUP, updater(activeTab));
   };
+
+
+  useEffect(() => {
+    if (!tabs.length) {
+      setActiveTabId(null);
+      return;
+    }
+
+    if (!tabs.find(t => t.id === activeTabId)) {
+      setActiveTabId(tabs[0].id);
+    }
+  }, [tabs, activeTabId]);
   return (
     <>
       <div
@@ -269,7 +300,7 @@ export function ApiTester() {
           ))}
 
           <button
-            onClick={addTab}
+            onClick={addTabLocal}
             className="ml-2 px-2 text-zinc-400 hover:text-emerald-400"
           >
             ＋

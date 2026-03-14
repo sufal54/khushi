@@ -27,6 +27,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             setTauriStore(s);
 
             const savedTabs = await s.get<Record<string, RequestTab[]>>("tabs");
+
             if (savedTabs) setTabs(savedTabs);
 
             const savedUser = await s.get<string>("user");
