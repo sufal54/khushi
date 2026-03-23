@@ -1,4 +1,4 @@
-import { ApiTester } from "./tester";
+import { ApiTester } from "../componenets/tester";
 
 export default function Home() {
   return (

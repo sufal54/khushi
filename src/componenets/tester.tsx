@@ -1,7 +1,7 @@
 "use client";
 
 import { useStore } from "@/context/StoreContext";
-import { invoke } from "@tauri-apps/api/core";
+import { sendRequest } from "@/utill/Request";
 import {
   FormEvent,
   useEffect,
@@ -152,7 +152,7 @@ export function ApiTester() {
   }, [tabs.length]);
 
   useEffect(() => {
-    const onMove = (e: MouseEvent) => {
+    const move = (e: PointerEvent) => {
       if (!isDragging.current || !containerRef.current) return;
 
       const rect = containerRef.current.getBoundingClientRect();
@@ -163,18 +163,44 @@ export function ApiTester() {
       }
     };
 
-    const onUp = () => {
+    const up = () => {
       isDragging.current = false;
-      document.body.style.cursor = "default";
+      document.body.style.cursor = "";
     };
 
-    window.addEventListener("mousemove", onMove);
-    window.addEventListener("mouseup", onUp);
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+
     return () => {
-      window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("mouseup", onUp);
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
     };
   }, []);
+
+  // useEffect(() => {
+  //   const onMove = (e: MouseEvent) => {
+  //     if (!isDragging.current || !containerRef.current) return;
+
+  //     const rect = containerRef.current.getBoundingClientRect();
+  //     const percent = ((e.clientY - rect.top) / rect.height) * 100;
+
+  //     if (percent > 20 && percent < 80) {
+  //       setLeftWidth(percent);
+  //     }
+  //   };
+
+  //   const onUp = () => {
+  //     isDragging.current = false;
+  //     document.body.style.cursor = "default";
+  //   };
+
+  //   window.addEventListener("mousemove", onMove);
+  //   window.addEventListener("mouseup", onUp);
+  //   return () => {
+  //     window.removeEventListener("mousemove", onMove);
+  //     window.removeEventListener("mouseup", onUp);
+  //   };
+  // }, []);
 
 
   const addTabLocal = () => {
@@ -209,12 +235,12 @@ export function ApiTester() {
     }));
 
     try {
-      const res = await invoke("send_request", {
-        method: activeTab.method,
-        url: activeTab.url,
-        headers: activeTab.headers,
-        body: activeTab.method === "GET" ? null : activeTab.body,
-      }) as ResponseData;
+      const res = await sendRequest(
+        activeTab.method,
+        activeTab.url,
+        activeTab.headers,
+        activeTab.method === "GET" ? null : activeTab.body
+      ) as ResponseData;
 
       updateActiveTab(t => ({
         ...t,
@@ -273,7 +299,7 @@ export function ApiTester() {
         ref={containerRef}
         className="flex flex-col h-full w-full overflow-hidden"
       >
-        <div className="flex items-center gap-1 px-2 border-b border-zinc-800 bg-zinc-900">
+        <div className="flex items-center gap-1 px-2 border-b border-zinc-800 bg-zinc-900 overflow-y-scroll">
           {tabs.map(tab => (
             <div
               key={tab.id}
@@ -281,10 +307,11 @@ export function ApiTester() {
                 setActiveTabId(tab.id);
               }}
               className={`flex items-center gap-2 px-3 py-1 text-xs rounded-t cursor-pointer
-        ${tab.id === activeTabId
+  whitespace-nowrap text-ellipsis
+  ${tab.id === activeTabId
                   ? "bg-zinc-800 text-white"
                   : "bg-zinc-900 text-zinc-400 hover:text-white"}
-      `}
+`}
             >
               {tab.name}
               <button
@@ -309,7 +336,7 @@ export function ApiTester() {
         {/* REQUEST */}
         <section
           style={{ height: `${leftWidth}%` }}
-          className="h-full overflow-auto p-4 space-y-4"
+          className="h-full overflow-y-auto overflow-x-hidden p-4 space-y-4"
         >
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Sticky bar */}
@@ -338,7 +365,7 @@ export function ApiTester() {
                     url: e.target.value
                   }))
                 }
-                className="flex-1 bg-zinc-900 border border-zinc-700 rounded-md px-3 py-1.5 text-sm"
+                className="flex-1 min-w-0 bg-zinc-900 border border-zinc-700 rounded-md px-3 py-1.5 text-sm"
               />
 
               <button
@@ -460,13 +487,14 @@ export function ApiTester() {
 
         {/* SPLITTER */}
         <div
-          onMouseDown={() => {
+          onPointerDown={(e) => {
+            e.preventDefault();
             isDragging.current = true;
             document.body.style.cursor = "row-resize";
           }}
-          className="relative h-1 w-full cursor-row-resize bg-zinc-800 hover:bg-emerald-500/60"
+          className="relative h-2 w-full touch-none cursor-row-resize bg-zinc-800 hover:bg-emerald-500/60"
         >
-          <div className="absolute inset-y-[-6px] inset-x-0" />
+          <div className="absolute inset-y-[-8px] inset-x-0" />
         </div>
 
         {/* RESPONSE */}
@@ -577,12 +605,7 @@ export function ApiTester() {
         </section>
       </div>
 
-      {/* MOBILE STACKED */}
-      <div className="md:hidden flex flex-col">
-        <p className="text-xs text-zinc-500 p-4">
-          Resize available on desktop
-        </p>
-      </div>
+
     </>
   );
 }
