@@ -1,5 +1,3 @@
-use serde::{ Deserialize, Serialize };
-use std::collections::HashMap;
 use tauri_plugin_store;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

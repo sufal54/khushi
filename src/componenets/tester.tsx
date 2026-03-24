@@ -297,7 +297,7 @@ export function ApiTester() {
     <>
       <div
         ref={containerRef}
-        className="flex flex-col h-full w-full overflow-hidden"
+        className="flex flex-col h-screen min-h-screen w-full overflow-hidden"
       >
         <div className="flex items-center gap-1 px-2 border-b border-zinc-800 bg-zinc-900 overflow-y-scroll">
           {tabs.map(tab => (
@@ -335,8 +335,8 @@ export function ApiTester() {
         </div>
         {/* REQUEST */}
         <section
-          style={{ height: `${leftWidth}%` }}
-          className="h-full overflow-y-auto overflow-x-hidden p-4 space-y-4"
+          className="overflow-y-auto overflow-x-hidden p-4 space-y-4 flex-1 min-h-0"
+          style={{ flexBasis: `${leftWidth}%` }}
         >
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Sticky bar */}
@@ -493,14 +493,15 @@ export function ApiTester() {
             document.body.style.cursor = "row-resize";
           }}
           className="relative h-2 w-full touch-none cursor-row-resize bg-zinc-800 hover:bg-emerald-500/60"
+          style={{ touchAction: "none" }}
         >
           <div className="absolute inset-y-[-8px] inset-x-0" />
         </div>
 
         {/* RESPONSE */}
         <section
-          style={{ height: `${100 - leftWidth}%` }}
-          className="h-full p-4 bg-zinc-950 flex flex-col overflow-hidden"
+          className="p-4 bg-zinc-950 flex flex-col overflow-hidden flex-1 min-h-0"
+          style={{ flexBasis: `${100 - leftWidth}%` }}
         >
           <h2 className="text-xs text-zinc-400 uppercase mb-2">Response</h2>
 
