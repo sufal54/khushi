@@ -204,9 +204,12 @@ export function ApiTester() {
 
 
   const addTabLocal = () => {
+
+    const lasttabs = tabs[tabs.length - 1];
+    const lastNumber = Number(lasttabs.name.split(" ")[1])
     const tab: RequestTab = {
       id: crypto.randomUUID(),
-      name: `Request ${tabs.length + 1}`,
+      name: `Request ${lastNumber + 1}`,
       method: "GET",
       url: "",
       headers: [],
@@ -395,7 +398,7 @@ export function ApiTester() {
 
               {showHeaders &&
                 activeTab.headers.map((h) => (
-                  <div key={h.id} className="flex gap-2 mb-2">
+                  <div key={h.id} className="flex gap-2 mb-2 overflow-x-scroll">
                     <select
                       value={h.isCustom ? "Custom" : h.name}
                       onChange={(e) => {
