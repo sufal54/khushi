@@ -1,36 +1,86 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Khushi API Client
 
-## Getting Started
+Khushi API Client is a **lightweight, fast, desktop API testing tool** built for developers who want a clean, distraction‑free workflow for sending requests, inspecting responses, and debugging APIs.
 
-First, run the development server:
+It focuses on **speed, simplicity, and developer productivity** without unnecessary clutter.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🚀 Features
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- ⚡ Fast & lightweight desktop application
+- 📡 Send and test HTTP API requests easily
+- 🧪 Inspect API responses in real time
+- 🗂 Organize requests for better workflow
+- 🎯 Clean and minimal developer‑focused UI
+- 🖥 Desktop‑first experience
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## 🛠 Use Cases
 
-To learn more about Next.js, take a look at the following resources:
+- Testing REST APIs
+- Debugging backend services
+- Experimenting with endpoints during development
+- Verifying request/response payloads
+- Lightweight alternative to heavy API clients
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 💻 Platform Support
 
-## Deploy on Vercel
+- ✅ Linux (Primary)
+- ⏳ Windows (Coming Soon)
+- ⏳ macOS (Coming Soon)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 📦 Installation
+
+> Installation instructions will be added soon.
+
+---
+
+## 🧩 Tech Stack
+
+- Desktop application
+- Modern frontend technologies
+- Developer‑optimized architecture
+
+---
+
+## 🎯 Philosophy
+
+Khushi API Client is built with a simple idea:
+
+> **Developers should focus on APIs — not on fighting the tool.**
+
+No unnecessary features. No bloated UI. Just what you need to test and debug APIs efficiently.
+
+---
+
+## 📸 Screenshots
+
+> Screenshots coming soon.
+
+---
+
+## 📄 License
+
+MIT License
+
+---
+
+## 🙌 Contributions
+
+Contributions, ideas, and feedback are welcome.
+
+---
+
+## 🌐 Website
+
+[https://khushi-liart.vercel.app/](https://khushi-liart.vercel.app/)
+
+---
+
+### Built for developers, by a developer 🚀
