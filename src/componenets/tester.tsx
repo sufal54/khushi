@@ -2,14 +2,9 @@
 
 import { useStore } from "@/context/StoreContext";
 import { sendRequest } from "@/utill/Request";
-import {
-  FormEvent,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { CiSquarePlus } from "react-icons/ci";
+import { FiPlus, FiX } from "react-icons/fi";
 
 type HeaderRow = {
   id: number;
@@ -53,54 +48,53 @@ const COMMON_HEADERS = [
 ];
 
 const METHOD_COLOR: Record<string, string> = {
-  "GET": "text-emerald-400",
-  "POST": "text-blue-400",
-  "PUT": "text-yellow-400",
-  "DELETE": "text-red-400",
-  "PATCH": "text-purple-400",
+  GET: "text-emerald-400",
+  POST: "text-blue-400",
+  PUT: "text-yellow-400",
+  DELETE: "text-red-400",
+  PATCH: "text-purple-400",
 };
 
-export function ApiTester() {
-  const { tabs: tabGroups, addTab: addStoreTab, updateTab, removeTab } = useStore();
+export function ApiTester({ collection }: { collection: string }) {
+  const {
+    tabs: tabGroups,
+    addTab: addStoreTab,
+    updateTab,
+    removeTab,
+  } = useStore();
 
-  const GROUP = "tabs";
-  const tabs = tabGroups[GROUP] ?? [];
-
-
+  const tabs = tabGroups[collection] ?? [];
 
   const [showHeaders, setShowHeaders] = useState(true);
-  const [activeResponseTab, setActiveResponseTab] = useState<"body" | "headers" | "cookies" | null>("body");
-
+  const [activeResponseTab, setActiveResponseTab] = useState<
+    "body" | "headers" | "cookies" | null
+  >("body");
 
   const [activeTabId, setActiveTabId] = useState<string | null>(
-    tabs[0]?.id ?? null
+    tabs[0]?.id ?? null,
   );
-
 
   const activeTab = useMemo(
-    () => tabs.find(t => t.id === activeTabId) ?? {
-      id: crypto.randomUUID(),
-      name: "Request 1",
-      method: "GET",
-      url: "https://jsonplaceholder.typicode.com/posts/1",
-      headers: [],
-      body: "",
-      response: null,
-      error: null,
-      loading: false,
-    },
-    [tabs, activeTabId]
+    () =>
+      tabs.find((t) => t.id === activeTabId) ?? {
+        id: crypto.randomUUID(),
+        name: "",
+        method: "GET",
+        url: "",
+        headers: [],
+        body: "",
+        response: null,
+        error: null,
+        loading: false,
+      },
+    [tabs, activeTabId],
   );
-
-
 
   const containerRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
   const [leftWidth, setLeftWidth] = useState(50);
 
-
   const isTauri = typeof window !== "undefined" && "__TAURI__" in window;
-
 
   const parsedBody = useMemo(() => {
     try {
@@ -116,9 +110,7 @@ export function ApiTester() {
     const setCookie = activeTab.response.headers["set-cookie"];
     if (!setCookie) return [];
 
-    const cookieLines = Array.isArray(setCookie)
-      ? setCookie
-      : [setCookie];
+    const cookieLines = Array.isArray(setCookie) ? setCookie : [setCookie];
 
     return cookieLines.map((line) => {
       const [pair, ...attrs] = line.split(";");
@@ -131,25 +123,6 @@ export function ApiTester() {
       };
     });
   }, [activeTab.response]);
-
-  useEffect(() => {
-    if (tabs.length === 0) {
-      const tab: RequestTab = {
-        id: crypto.randomUUID(),
-        name: "Request 1",
-        method: "GET",
-        url: "https://jsonplaceholder.typicode.com/posts/1",
-        headers: [],
-        body: "",
-        response: null,
-        error: null,
-        loading: false,
-      };
-
-      addStoreTab(GROUP, tab);
-      setActiveTabId(tab.id);
-    }
-  }, [tabs.length]);
 
   useEffect(() => {
     const move = (e: PointerEvent) => {
@@ -167,46 +140,24 @@ export function ApiTester() {
       isDragging.current = false;
       document.body.style.cursor = "";
     };
+    const container = containerRef.current;
 
-    window.addEventListener("pointermove", move);
-    window.addEventListener("pointerup", up);
+    if (!container) return;
 
+    container.addEventListener("pointermove", move);
+    container.addEventListener("pointerup", up);
     return () => {
-      window.removeEventListener("pointermove", move);
-      window.removeEventListener("pointerup", up);
+      container.removeEventListener("pointermove", move);
+      container.removeEventListener("pointerup", up);
     };
   }, []);
 
-  // useEffect(() => {
-  //   const onMove = (e: MouseEvent) => {
-  //     if (!isDragging.current || !containerRef.current) return;
-
-  //     const rect = containerRef.current.getBoundingClientRect();
-  //     const percent = ((e.clientY - rect.top) / rect.height) * 100;
-
-  //     if (percent > 20 && percent < 80) {
-  //       setLeftWidth(percent);
-  //     }
-  //   };
-
-  //   const onUp = () => {
-  //     isDragging.current = false;
-  //     document.body.style.cursor = "default";
-  //   };
-
-  //   window.addEventListener("mousemove", onMove);
-  //   window.addEventListener("mouseup", onUp);
-  //   return () => {
-  //     window.removeEventListener("mousemove", onMove);
-  //     window.removeEventListener("mouseup", onUp);
-  //   };
-  // }, []);
-
-
   const addTabLocal = () => {
-
-    const lasttabs = tabs[tabs.length - 1];
-    const lastNumber = Number(lasttabs.name.split(" ")[1])
+    let lastNumber = 0;
+    if (tabs.length > 0) {
+      const lasttabs = tabs[tabs.length - 1];
+      lastNumber = Number(lasttabs.name.split(" ")[1]);
+    }
     const tab: RequestTab = {
       id: crypto.randomUUID(),
       name: `Request ${lastNumber + 1}`,
@@ -219,72 +170,69 @@ export function ApiTester() {
       loading: false,
     };
 
-    addStoreTab(GROUP, tab);
+    addStoreTab(collection, tab);
     setActiveTabId(tab.id);
   };
 
   const closeTab = (id: string) => {
-    removeTab(GROUP, id);
+    removeTab(collection, id);
   };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
-    updateActiveTab(t => ({
+    updateActiveTab((t) => ({
       ...t,
       loading: true,
       error: null,
-      response: null
+      response: null,
     }));
 
     try {
-      const res = await sendRequest(
+      const res = (await sendRequest(
         activeTab.method,
         activeTab.url,
         activeTab.headers,
-        activeTab.method === "GET" ? null : activeTab.body
-      ) as ResponseData;
+        activeTab.method === "GET" ? null : activeTab.body,
+      )) as ResponseData;
 
-      updateActiveTab(t => ({
+      updateActiveTab((t) => ({
         ...t,
         response: res,
-        loading: false
+        loading: false,
       }));
     } catch (err: any) {
-      updateActiveTab(t => ({
+      updateActiveTab((t) => ({
         ...t,
         error: String(err),
-        loading: false
+        loading: false,
       }));
     }
   };
   const addHeaderRow = () =>
-    updateActiveTab(t => ({
+    updateActiveTab((t) => ({
       ...t,
       headers: [
         ...t.headers,
-        { id: Date.now(), name: "", value: "", isCustom: true }
-      ]
+        { id: Date.now(), name: "", value: "", isCustom: true },
+      ],
     }));
 
   const updateHeader = (id: number, key: "name" | "value", value: string) =>
-    updateActiveTab(t => ({
+    updateActiveTab((t) => ({
       ...t,
-      headers: t.headers.map(h =>
-        h.id === id ? { ...h, [key]: value } : h
-      )
+      headers: t.headers.map((h) => (h.id === id ? { ...h, [key]: value } : h)),
     }));
 
   const removeHeader = (id: number) =>
-    updateActiveTab(t => ({
+    updateActiveTab((t) => ({
       ...t,
-      headers: t.headers.filter(h => h.id !== id)
+      headers: t.headers.filter((h) => h.id !== id),
     }));
   const updateActiveTab = (updater: (t: RequestTab) => RequestTab) => {
     if (!activeTab) return;
-    updateTab(GROUP, updater(activeTab));
+    updateTab(collection, updater(activeTab));
   };
-
 
   useEffect(() => {
     if (!tabs.length) {
@@ -292,7 +240,7 @@ export function ApiTester() {
       return;
     }
 
-    if (!tabs.find(t => t.id === activeTabId)) {
+    if (!tabs.find((t) => t.id === activeTabId)) {
       setActiveTabId(tabs[0].id);
     }
   }, [tabs, activeTabId]);
@@ -303,7 +251,7 @@ export function ApiTester() {
         className="flex flex-col h-screen min-h-screen w-full overflow-hidden"
       >
         <div className="flex items-center gap-1 px-2 border-b border-zinc-800 bg-zinc-900 overflow-y-scroll">
-          {tabs.map(tab => (
+          {tabs.map((tab) => (
             <div
               key={tab.id}
               onClick={() => {
@@ -311,9 +259,11 @@ export function ApiTester() {
               }}
               className={`flex items-center gap-2 px-3 py-1 text-xs rounded-t cursor-pointer
   whitespace-nowrap text-ellipsis
-  ${tab.id === activeTabId
-                  ? "bg-zinc-800 text-white"
-                  : "bg-zinc-900 text-zinc-400 hover:text-white"}
+  ${
+    tab.id === activeTabId
+      ? "bg-zinc-800 text-white"
+      : "bg-zinc-900 text-zinc-400 hover:text-white"
+  }
 `}
             >
               {tab.name}
@@ -322,18 +272,19 @@ export function ApiTester() {
                   e.stopPropagation();
                   closeTab(tab.id);
                 }}
-                className="hover:text-red-400"
+                className="flex h-5 w-5 items-center justify-center rounded text-zinc-500 transition hover:bg-red-500/10 hover:text-red-400"
+                title="Close tab"
               >
-                ✕
+                <FiX size={13} />
               </button>
             </div>
           ))}
 
           <button
             onClick={addTabLocal}
-            className="ml-2 px-2 text-zinc-400 hover:text-emerald-400"
+            className="ml-2 text-zinc-400 hover:text-emerald-400"
           >
-            ＋
+            <CiSquarePlus className="text-green-500 text-xl" />
           </button>
         </div>
         {/* REQUEST */}
@@ -347,25 +298,26 @@ export function ApiTester() {
               <select
                 value={activeTab.method}
                 onChange={(e) =>
-                  updateActiveTab(t => ({
+                  updateActiveTab((t) => ({
                     ...t,
-                    method: e.target.value
+                    method: e.target.value,
                   }))
                 }
                 className={`appearance-none bg-zinc-900 border border-zinc-700 rounded-md px-2 py-1 text-sm font-semibold ${METHOD_COLOR[activeTab.method]}`}
               >
                 {["GET", "POST", "PUT", "DELETE", "PATCH"].map((m) => (
-                  <option className={`${METHOD_COLOR[m]}`} key={m}>{m}</option>
+                  <option className={`${METHOD_COLOR[m]}`} key={m}>
+                    {m}
+                  </option>
                 ))}
-
               </select>
 
               <input
                 value={activeTab.url}
                 onChange={(e) =>
-                  updateActiveTab(t => ({
+                  updateActiveTab((t) => ({
                     ...t,
-                    url: e.target.value
+                    url: e.target.value,
                   }))
                 }
                 className="flex-1 min-w-0 bg-zinc-900 border border-zinc-700 rounded-md px-3 py-1.5 text-sm"
@@ -404,17 +356,17 @@ export function ApiTester() {
                       onChange={(e) => {
                         const v = e.target.value;
 
-                        updateActiveTab(tab => ({
+                        updateActiveTab((tab) => ({
                           ...tab,
-                          headers: tab.headers.map(hdr =>
+                          headers: tab.headers.map((hdr) =>
                             hdr.id === h.id
                               ? {
-                                ...hdr,
-                                name: v === "Custom" ? "" : v,
-                                isCustom: v === "Custom",
-                              }
-                              : hdr
-                          )
+                                  ...hdr,
+                                  name: v === "Custom" ? "" : v,
+                                  isCustom: v === "Custom",
+                                }
+                              : hdr,
+                          ),
                         }));
                       }}
                       className="w-40 appearance-none bg-zinc-900 border border-zinc-700 rounded-md px-2 py-1 text-xs"
@@ -447,9 +399,10 @@ export function ApiTester() {
                     <button
                       type="button"
                       onClick={() => removeHeader(h.id)}
-                      className="text-zinc-500 hover:text-red-400"
+                      className="flex h-6 w-6 items-center justify-center rounded text-zinc-500 hover:bg-red-500/10 hover:text-red-400"
+                      title="Remove header"
                     >
-                      ✕
+                      <FiX size={14} />
                     </button>
                   </div>
                 ))}
@@ -457,9 +410,10 @@ export function ApiTester() {
               <button
                 type="button"
                 onClick={addHeaderRow}
-                className="text-xs text-emerald-400"
+                className="flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300"
               >
-                + Add header
+                <FiPlus size={14} />
+                Add header
               </button>
             </div>
 
@@ -468,17 +422,16 @@ export function ApiTester() {
               disabled={activeTab.method === "GET"}
               value={parsedBody}
               onChange={(e) =>
-                updateActiveTab(t => ({
+                updateActiveTab((t) => ({
                   ...t,
-                  body: e.target.value
+                  body: e.target.value,
                 }))
               }
               rows={10}
-              className={`w-full bg-zinc-900 border border-zinc-700 rounded-md px-3 py-2 text-xs font-mono ${activeTab.method === "GET" ? "opacity-50" : ""
-                }`}
+              className={`w-full bg-zinc-900 border border-zinc-700 rounded-md px-3 py-2 text-xs font-mono ${
+                activeTab.method === "GET" ? "opacity-50" : ""
+              }`}
             />
-
-
 
             {activeTab.error && (
               <p className="text-xs text-red-400 border border-red-900 rounded-md px-3 py-2">
@@ -517,49 +470,60 @@ export function ApiTester() {
               {/* Status bar */}
               <p className="text-xs mb-3 flex items-center gap-2">
                 <span
-                  className={`px-2 py-0.5 rounded-full text-[10px] ${activeTab.response.status < 300
-                    ? "bg-emerald-900 text-emerald-300"
-                    : "bg-red-900 text-red-300"
-                    }`}
+                  className={`px-2 py-0.5 rounded-full text-[10px] ${
+                    activeTab.response.status < 300
+                      ? "bg-emerald-900 text-emerald-300"
+                      : "bg-red-900 text-red-300"
+                  }`}
                 >
                   {activeTab.response.status}
                 </span>
-                {activeTab.response.status_text} · {activeTab.response.duration_ms} ms
+                {activeTab.response.status_text} ·{" "}
+                {activeTab.response.duration_ms} ms
               </p>
 
               {/* Tabs */}
               <div className="flex gap-2 mb-2">
                 <button
                   onClick={() =>
-                    setActiveResponseTab(activeResponseTab === "body" ? null : "body")
+                    setActiveResponseTab(
+                      activeResponseTab === "body" ? null : "body",
+                    )
                   }
-                  className={`px-3 py-1 text-xs rounded ${activeResponseTab === "body"
-                    ? "bg-zinc-800 text-white"
-                    : "bg-zinc-900 text-zinc-400"
-                    }`}
+                  className={`px-3 py-1 text-xs rounded ${
+                    activeResponseTab === "body"
+                      ? "bg-zinc-800 text-white"
+                      : "bg-zinc-900 text-zinc-400"
+                  }`}
                 >
                   Body
                 </button>
 
                 <button
                   onClick={() =>
-                    setActiveResponseTab(activeResponseTab === "headers" ? null : "headers")
+                    setActiveResponseTab(
+                      activeResponseTab === "headers" ? null : "headers",
+                    )
                   }
-                  className={`px-3 py-1 text-xs rounded ${activeResponseTab === "headers"
-                    ? "bg-zinc-800 text-white"
-                    : "bg-zinc-900 text-zinc-400"
-                    }`}
+                  className={`px-3 py-1 text-xs rounded ${
+                    activeResponseTab === "headers"
+                      ? "bg-zinc-800 text-white"
+                      : "bg-zinc-900 text-zinc-400"
+                  }`}
                 >
                   Headers
                 </button>
                 <button
                   onClick={() =>
-                    setActiveResponseTab(activeResponseTab === "cookies" ? null : "cookies")
+                    setActiveResponseTab(
+                      activeResponseTab === "cookies" ? null : "cookies",
+                    )
                   }
-                  className={`px-3 py-1 text-xs rounded ${activeResponseTab === "cookies"
-                    ? "bg-zinc-800 text-white"
-                    : "bg-zinc-900 text-zinc-400"
-                    }`}
+                  className={`px-3 py-1 text-xs rounded ${
+                    activeResponseTab === "cookies"
+                      ? "bg-zinc-800 text-white"
+                      : "bg-zinc-900 text-zinc-400"
+                  }`}
                 >
                   Cookies
                 </button>
@@ -579,12 +543,16 @@ export function ApiTester() {
                   className={`absolute inset-0 bg-zinc-900 border border-zinc-800 rounded-md p-3 text-xs overflow-auto space-y-1
       ${activeResponseTab === "headers" ? "block" : "hidden"}`}
                 >
-                  {Object.entries(activeTab.response.headers).map(([key, value]) => (
-                    <div key={key} className="flex gap-2">
-                      <span className="text-zinc-400 min-w-[140px]">{key}</span>
-                      <span className="break-all">{value}</span>
-                    </div>
-                  ))}
+                  {Object.entries(activeTab.response.headers).map(
+                    ([key, value]) => (
+                      <div key={key} className="flex gap-2">
+                        <span className="text-zinc-400 min-w-[140px]">
+                          {key}
+                        </span>
+                        <span className="break-all">{value}</span>
+                      </div>
+                    ),
+                  )}
                 </div>
 
                 {/* COOKIES */}
@@ -608,8 +576,6 @@ export function ApiTester() {
           )}
         </section>
       </div>
-
-
     </>
   );
 }

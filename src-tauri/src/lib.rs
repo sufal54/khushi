@@ -2,6 +2,7 @@ use tauri_plugin_store;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    std::env::set_var("GDK_BACKEND", "wayland");
     tauri::Builder::default()
         .plugin(tauri_plugin_http::init())
         .setup(|app| {
