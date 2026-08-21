@@ -6,12 +6,17 @@ import Menu from "@/componenets/menu";
 import { useStore } from "@/context/StoreContext";
 
 export default function Home() {
-  const { tabs: tabGroups, addCollection, deleteCollection } = useStore();
+  const {
+    tabs: tabGroups,
+    addCollection,
+    deleteCollection,
+    renameCollection,
+  } = useStore();
 
   const collectionList = Object.keys(tabGroups);
 
   const [isShowMenu, setIsShowMenu] = useState<boolean>(false);
-  const [activeCollection, setActiveCollection] = useState<string>("tabs");
+  const [activeCollection, setActiveCollection] = useState<string>("test");
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-50 flex items-stretch justify-center px-4 py-6 overflow-hidden">
@@ -40,6 +45,9 @@ export default function Home() {
             setCollection={setActiveCollection}
             addCollection={addCollection}
             deleteCollection={deleteCollection}
+            renameCollection={renameCollection}
+            activeCollection={activeCollection}
+            setActiveCollection={setActiveCollection}
           />
         )}
 

@@ -1,14 +1,17 @@
 "use client";
 
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
-import { FiPlus, FiTrash2, FiX } from "react-icons/fi";
+import { FiEdit2, FiMoreVertical, FiPlus, FiTrash2, FiX } from "react-icons/fi";
 
 type Props = {
   collectionList: string[];
+  activeCollection: string;
+  setActiveCollection: Dispatch<SetStateAction<string>>;
   setIsShowMenu: Dispatch<SetStateAction<boolean>>;
   setCollection: Dispatch<SetStateAction<string>>;
   addCollection: (name: string) => void;
   deleteCollection: (name: string) => void;
+  renameCollection: (oldName: string, newName: string) => void;
 };
 
 export default function Menu({
@@ -17,14 +20,23 @@ export default function Menu({
   setCollection,
   addCollection,
   deleteCollection,
+  renameCollection,
+  activeCollection,
+  setActiveCollection,
 }: Props) {
-  const [activeCollection, setActiveCollection] = useState("");
   const [newCollection, setNewCollection] = useState("");
   const [isAdding, setIsAdding] = useState(false);
 
   const [menuWidth, setMenuWidth] = useState(320);
   const [isResizing, setIsResizing] = useState(false);
 
+  const [editingCollection, setEditingCollection] = useState<string | null>(
+    null,
+  );
+  const [editCollectionName, setEditCollectionName] = useState("");
+  const [deleteCurrentCollection, setDeleteCurrentCollection] = useState<
+    string | null
+  >(null);
   const resizeStartX = useRef(0);
   const resizeStartWidth = useRef(320);
 
@@ -185,28 +197,172 @@ export default function Menu({
           <div className="space-y-1">
             {collectionList.map((collection) => {
               const isActive = activeCollection === collection;
+              const isEditing = editingCollection === collection;
 
               return (
                 <div
                   key={collection}
-                  className={`group flex items-center rounded-md transition ${
+                  className={`group relative flex items-center rounded-md transition ${
                     isActive ? "bg-zinc-800" : "hover:bg-zinc-900"
                   }`}
                 >
-                  <button
-                    onClick={() => selectCollection(collection)}
-                    className="min-w-0 flex-1 truncate px-3 py-2.5 text-left text-sm text-zinc-200"
-                  >
-                    {collection}
-                  </button>
+                  {/* Collection name / Edit input */}
+                  {isEditing ? (
+                    <input
+                      autoFocus
+                      value={editCollectionName}
+                      onChange={(e) => setEditCollectionName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          const newName = editCollectionName.trim();
 
-                  <button
-                    onClick={() => handleDeleteCollection(collection)}
-                    title="Delete collection"
-                    className="mr-1 flex h-7 w-7 shrink-0 items-center justify-center rounded text-zinc-600 opacity-0 transition hover:bg-red-500/10 hover:text-red-400 group-hover:opacity-100"
-                  >
-                    <FiTrash2 size={14} />
-                  </button>
+                          if (!newName) return;
+
+                          if (
+                            newName !== collection &&
+                            collectionList.includes(newName)
+                          ) {
+                            return;
+                          }
+
+                          renameCollection(collection, newName);
+
+                          if (activeCollection === collection) {
+                            selectCollection(newName);
+                          }
+
+                          setEditingCollection(null);
+                        }
+
+                        if (e.key === "Escape") {
+                          setEditingCollection(null);
+                        }
+                      }}
+                      className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm
+              text-white outline-none border border-emerald-500 rounded-md"
+                    />
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => selectCollection(collection)}
+                      className="min-w-0 flex-1 truncate px-3 py-2.5 text-left text-sm text-zinc-200"
+                    >
+                      {collection}
+                    </button>
+                  )}
+
+                  {/* 3 dot */}
+                  {!isEditing && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                      }}
+                      className="mr-1 flex h-7 w-7 shrink-0 items-center justify-center
+              rounded text-zinc-500 transition hover:bg-zinc-700 hover:text-white"
+                    >
+                      <FiMoreVertical size={15} />
+                    </button>
+                  )}
+
+                  {/* Dropdown */}
+                  {!isEditing && (
+                    <div
+                      className="absolute right-1 top-full z-50 mt-1 hidden w-36
+              rounded-md border border-zinc-700 bg-zinc-900 p-1 shadow-xl
+              group-focus-within:block"
+                    >
+                      {/* Rename */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+
+                          setEditingCollection(collection);
+                          setEditCollectionName(collection);
+                        }}
+                        className="flex w-full items-center gap-2 rounded px-2 py-2
+                text-xs text-zinc-300 hover:bg-zinc-800 hover:text-white"
+                      >
+                        <FiEdit2 size={13} />
+                        Rename
+                      </button>
+
+                      {/* Delete */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeleteCurrentCollection(collection);
+                        }}
+                        className="flex w-full items-center gap-2 rounded px-2 py-2
+    text-xs text-red-400 hover:bg-red-500/10"
+                      >
+                        <FiTrash2 size={13} />
+                        Delete
+                      </button>
+
+                      {deleteCurrentCollection && (
+                        <div
+                          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+                          onClick={() => setDeleteCurrentCollection(null)}
+                        >
+                          <div
+                            className="w-full max-w-sm rounded-xl border border-zinc-800 bg-zinc-950 p-5 shadow-2xl"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <div className="mb-4 flex items-start gap-3">
+                              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-500/10 text-red-400">
+                                <FiTrash2 size={18} />
+                              </div>
+
+                              <div>
+                                <h2 className="text-sm font-semibold text-white">
+                                  Delete collection?
+                                </h2>
+
+                                <p className="mt-1 text-xs leading-5 text-zinc-400">
+                                  Are you sure you want to delete{" "}
+                                  <span className="font-medium text-zinc-200">
+                                    "{deleteCurrentCollection}"
+                                  </span>
+                                  ? This action cannot be undone.
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="flex justify-end gap-2">
+                              <button
+                                type="button"
+                                onClick={() => setDeleteCurrentCollection(null)}
+                                className="rounded-md px-3 py-2 text-xs font-medium text-zinc-300
+            hover:bg-zinc-800 hover:text-white"
+                              >
+                                Cancel
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  handleDeleteCollection(
+                                    deleteCurrentCollection,
+                                  );
+                                  setDeleteCurrentCollection(null);
+                                  setActiveCollection(
+                                    collectionList[0] ?? "test",
+                                  );
+                                }}
+                                className="rounded-md bg-red-500 px-3 py-2 text-xs font-medium
+            text-white hover:bg-red-600"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               );
             })}

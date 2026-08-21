@@ -204,6 +204,7 @@ export function ApiTester({ collection }: { collection: string }) {
       updateActiveTab((t) => ({
         ...t,
         response: res,
+        error: null,
         loading: false,
       }));
     } catch (err: any) {
@@ -543,7 +544,9 @@ export function ApiTester({ collection }: { collection: string }) {
                   className={`absolute inset-0 bg-zinc-900 border border-zinc-800 rounded-md p-3 text-xs overflow-auto
       ${activeResponseTab === "body" ? "block" : "hidden"}`}
                 >
-                  {formatBody(activeTab.response.body)}
+                  {/* {formatBody(activeTab.response.body)} */}
+
+                  {activeTab.response.body.toString()}
                 </pre>
 
                 {/* HEADERS */}
@@ -588,10 +591,10 @@ export function ApiTester({ collection }: { collection: string }) {
   );
 }
 
-function formatBody(body: string) {
-  try {
-    return JSON.stringify(JSON.parse(body), null, 2);
-  } catch {
-    return body;
-  }
-}
+// function formatBody(body: string) {
+//   try {
+//     return JSON.stringify(JSON.parse(body), null, 2);
+//   } catch {
+//     return body;
+//   }
+// }

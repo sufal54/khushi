@@ -11,9 +11,11 @@ type StoreContextType = {
   tabs: Record<string, RequestTab[]>;
 
   addCollection: (name: string) => void;
+  renameCollection: (oldName: string, newName: string) => void;
   deleteCollection: (name: string) => void;
 
   addTab: (group: string, tab: RequestTab) => void;
+  renameTab: (group: string, id: string, name: string) => void;
   updateTab: (group: string, tab: RequestTab) => void;
   removeTab: (group: string, id: string) => void;
 };
@@ -84,6 +86,36 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
+  const renameCollection = (oldName: string, newName: string) => {
+    const oldCollectionName = oldName.trim();
+    const newCollectionName = newName.trim();
+
+    if (!oldCollectionName || !newCollectionName) return;
+    if (oldCollectionName === newCollectionName) return;
+
+    setTabs((prev) => {
+      // Old collection doesn't exist
+      if (!(oldCollectionName in prev)) {
+        return prev;
+      }
+
+      // New name already exists
+      if (newCollectionName in prev) {
+        return prev;
+      }
+
+      const next = { ...prev };
+
+      // Move the collection
+      next[newCollectionName] = next[oldCollectionName];
+
+      // Delete old collection
+      delete next[oldCollectionName];
+
+      return next;
+    });
+  };
+
   const deleteCollection = (name: string) => {
     setTabs((prev) => {
       // Don't delete if it doesn't exist
@@ -103,6 +135,25 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setTabs((prev) => ({
       ...prev,
       [group]: [...(prev[group] ?? []), tab],
+    }));
+  };
+
+  const renameTab = (group: string, id: string, name: string) => {
+    const newName = name.trim();
+
+    if (!newName) return;
+
+    setTabs((prev) => ({
+      ...prev,
+      [group]:
+        prev[group]?.map((tab) =>
+          tab.id === id
+            ? {
+                ...tab,
+                name: newName,
+              }
+            : tab,
+        ) ?? [],
     }));
   };
 
@@ -129,10 +180,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         tabs,
 
         addCollection,
+        renameCollection,
         deleteCollection,
 
         addTab,
         updateTab,
+        renameTab,
         removeTab,
       }}
     >
