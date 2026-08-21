@@ -2,6 +2,7 @@
 
 import { useStore } from "@/context/StoreContext";
 import { sendRequest } from "@/utill/Request";
+import { ResponseData } from "@/utill/types";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { CiSquarePlus } from "react-icons/ci";
 import { FiPlus, FiX } from "react-icons/fi";
@@ -11,14 +12,6 @@ type HeaderRow = {
   name: string;
   value: string;
   isCustom?: boolean;
-};
-
-type ResponseData = {
-  status: number;
-  status_text: string;
-  headers: Record<string, string>;
-  body: string;
-  duration_ms: number;
 };
 
 export type RequestTab = {
@@ -189,10 +182,22 @@ export function ApiTester({ collection }: { collection: string }) {
     }));
 
     try {
+      const cookieHeader = cookies
+        .map((cookie) => `${cookie.name}=${cookie.value}`)
+        .join("; ");
+
       const res = (await sendRequest(
         activeTab.method,
         activeTab.url,
-        activeTab.headers,
+        cookieHeader
+          ? [
+              ...activeTab.headers,
+              {
+                name: "Cookie",
+                value: cookieHeader,
+              },
+            ]
+          : activeTab.headers,
         activeTab.method === "GET" ? null : activeTab.body,
       )) as ResponseData;
 
@@ -209,6 +214,7 @@ export function ApiTester({ collection }: { collection: string }) {
       }));
     }
   };
+
   const addHeaderRow = () =>
     updateActiveTab((t) => ({
       ...t,
@@ -229,6 +235,7 @@ export function ApiTester({ collection }: { collection: string }) {
       ...t,
       headers: t.headers.filter((h) => h.id !== id),
     }));
+
   const updateActiveTab = (updater: (t: RequestTab) => RequestTab) => {
     if (!activeTab) return;
     updateTab(collection, updater(activeTab));
@@ -244,6 +251,7 @@ export function ApiTester({ collection }: { collection: string }) {
       setActiveTabId(tabs[0].id);
     }
   }, [tabs, activeTabId]);
+
   return (
     <>
       <div

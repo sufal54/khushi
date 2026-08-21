@@ -51,7 +51,7 @@ export async function sendRequest(
     status: response.status,
     status_text: response.statusText,
     headers: headersOut,
-    cookies: setCookie ? [setCookie] : [],
+    cookies: setCookie ? setCookie : null,
     body: bodyText,
     duration_ms,
   };

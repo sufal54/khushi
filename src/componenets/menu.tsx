@@ -108,7 +108,7 @@ export default function Menu({
   return (
     <aside
       style={{ width: `${menuWidth}px` }}
-      className={`fixed inset-y-0 left-0 z-50 flex max-w-[85vw] flex-col border-r border-zinc-800 bg-zinc-950 text-white shadow-2xl ${
+      className={`fixed pt-[env(safe-area-inset-top)] inset-y-0 left-0 z-50 flex max-w-[85vw] flex-col border-r border-zinc-800 bg-zinc-950 text-white shadow-2xl ${
         isResizing ? "" : "transition-[width] duration-150"
       }`}
     >
