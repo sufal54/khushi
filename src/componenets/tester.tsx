@@ -310,8 +310,6 @@ export function ApiTester({ collection }: { collection: string }) {
     if (!currentTap) {
       setActiveTabId(tabs[0].id);
       setBodyFormat(tabs[0].bodyType);
-    } else {
-      setBodyFormat(currentTap.bodyType);
     }
   }, [tabs, activeTabId]);
 
@@ -564,12 +562,9 @@ export function ApiTester({ collection }: { collection: string }) {
                 </div>
 
                 <textarea
-                  disabled={
-                    activeTab.method === "GET" || activeTab.bodyType === "none"
-                  }
+                  disabled={activeTab.method === "GET"}
                   value={parsedBody}
                   onChange={(e) => {
-                    setBodyFormat(e.target.value as BodyType);
                     updateActiveTab((t) => ({
                       ...t,
                       body: e.target.value,
