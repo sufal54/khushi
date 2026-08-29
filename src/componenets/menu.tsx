@@ -1,7 +1,15 @@
 "use client";
 
+import { openUrl } from "@tauri-apps/plugin-opener";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
-import { FiEdit2, FiMoreVertical, FiPlus, FiTrash2, FiX } from "react-icons/fi";
+import {
+  FiEdit2,
+  FiHeart,
+  FiMoreVertical,
+  FiPlus,
+  FiTrash2,
+  FiX,
+} from "react-icons/fi";
 
 type Props = {
   collectionList: string[];
@@ -371,7 +379,17 @@ export default function Menu({
       </div>
 
       {/* Footer */}
-      <div className="shrink-0 border-t border-zinc-800 p-3">
+      <div className="shrink-0 border-t border-zinc-800 p-3 space-y-2">
+        <button
+          onClick={async () => {
+            await openUrl("https://www.buymeacoffee.com/subadev");
+          }}
+          className="flex w-full items-center justify-center gap-2 rounded-md bg-zinc-900 py-2 text-sm text-zinc-400 transition hover:bg-zinc-800 hover:text-white"
+        >
+          <FiHeart size={15} />
+          Support / Donate
+        </button>
+
         <button
           onClick={() => setIsShowMenu(false)}
           className="flex w-full items-center justify-center gap-2 rounded-md bg-zinc-900 py-2 text-sm text-zinc-400 transition hover:bg-zinc-800 hover:text-white"
@@ -379,20 +397,6 @@ export default function Menu({
           <FiX size={15} />
           Close
         </button>
-      </div>
-
-      {/* Resize handle */}
-      <div
-        onPointerDown={startResize}
-        className="group absolute right-0 top-0 h-full w-1.5 cursor-col-resize"
-      >
-        <div
-          className={`absolute right-0 top-0 h-full w-px transition-colors ${
-            isResizing
-              ? "bg-zinc-400"
-              : "bg-transparent group-hover:bg-zinc-600"
-          }`}
-        />
       </div>
     </aside>
   );
