@@ -92,9 +92,13 @@ export function ApiTester({ collection }: { collection: string }) {
     [tabs, activeTabId],
   );
 
-  const [bodyFormat, setBodyFormat] = useState<BodyType>(
-    activeTab.bodyType as BodyType,
-  );
+  // const [bodyFormat, setBodyFormat] = useState<BodyType>(
+  //   activeTab.bodyType as BodyType,
+  // );
+
+  const bodyFormat = useMemo(() => {
+    return activeTab.bodyType || "none";
+  }, [activeTab.bodyType]);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
@@ -309,7 +313,6 @@ export function ApiTester({ collection }: { collection: string }) {
     const currentTap = tabs.find((t) => t.id === activeTabId);
     if (!currentTap) {
       setActiveTabId(tabs[0].id);
-      setBodyFormat(tabs[0].bodyType);
     }
   }, [tabs, activeTabId]);
 
@@ -545,7 +548,6 @@ export function ApiTester({ collection }: { collection: string }) {
                   <select
                     value={bodyFormat ?? "none"}
                     onChange={(e) => {
-                      setBodyFormat(e.target.value as BodyType);
                       updateActiveTab((t) => ({
                         ...t,
                         bodyType: e.target.value as BodyType,
@@ -579,7 +581,7 @@ export function ApiTester({ collection }: { collection: string }) {
                         : "Entry body"
                   }
                   className={`w-full rounded-md border border-zinc-700 bg-zinc-900 px-3 py-2 text-xs font-mono outline-none focus:border-zinc-500 ${
-                    activeTab.method === "GET" || activeTab.bodyType === "none"
+                    activeTab.method === "GET"
                       ? "cursor-not-allowed opacity-50"
                       : ""
                   }`}
