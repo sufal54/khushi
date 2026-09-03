@@ -1,8 +1,8 @@
 "use client";
 import { GiHamburgerMenu } from "react-icons/gi";
-import { ApiTester } from "../componenets/tester";
+import { Container } from "../componenets/Container";
 import { useState } from "react";
-import Menu from "@/componenets/menu";
+import Menu from "@/componenets/Menu";
 import { useStore } from "@/context/StoreContext";
 
 export default function Home() {
@@ -51,7 +51,7 @@ export default function Home() {
           />
         )}
 
-        <ApiTester collection={activeCollection} />
+        <Container collection={activeCollection} />
       </main>
     </div>
   );
