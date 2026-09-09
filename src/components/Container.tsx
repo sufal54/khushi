@@ -4,6 +4,7 @@ import {
   createEffect,
   createMemo,
   createSignal,
+  on,
   onCleanup,
   onMount,
 } from "solid-js";
@@ -83,6 +84,8 @@ export function Container(props: { collection: string }) {
     updateTab,
     removeTab,
     renameTab,
+    lastTab,
+    setLastTabOpened,
   } = useStore();
 
   const tabs = createMemo(() => tabGroups()[props.collection] ?? []);
@@ -112,6 +115,10 @@ export function Container(props: { collection: string }) {
   const activeTab = createMemo<RequestTab>(() => {
     const currentTabs = tabs();
     const id = activeTabId();
+
+    if (!id && currentTabs.length > 0) {
+      setActiveTabId(currentTabs[0].id);
+    }
 
     return (
       currentTabs.find((tab) => tab.id === id) ??
@@ -187,11 +194,28 @@ export function Container(props: { collection: string }) {
    */
   onMount(() => {
     const currentTabs = tabs();
+    const lastOpendTab = lastTab();
+    if (lastOpendTab && lastOpendTab.group == props.collection) {
+      setActiveTabId(lastOpendTab.tabId);
+      return;
+    }
 
     if (currentTabs.length > 0) {
       setActiveTabId(currentTabs[0].id);
     }
   });
+
+  createEffect(
+    on(
+      () => lastTab()?.tabId,
+      (id) => {
+        if (!id) {
+          return;
+        }
+        setActiveTabId(id);
+      },
+    ),
+  );
 
   /*
    * Body type → Content-Type header
@@ -327,6 +351,8 @@ export function Container(props: { collection: string }) {
 
     const tab = activeTab();
 
+    setLastTabOpened({ group: props.collection, tabId: tab.id });
+
     await updateActiveTab((t) => ({
       ...t,
       loading: true,
@@ -359,13 +385,15 @@ export function Container(props: { collection: string }) {
         tab.method === "GET" ? null : tab.body,
       )) as ResponseData;
 
+      console.log(res);
+
       await updateActiveTab((t) => ({
         ...t,
         response: res,
         error: null,
         loading: false,
       }));
-    } catch (err) {
+    } catch (err: any) {
       await updateActiveTab((t) => ({
         ...t,
         error: String(err),
@@ -433,6 +461,7 @@ export function Container(props: { collection: string }) {
               }}
               onClick={() => {
                 setActiveTabId(tab.id);
+                // setLastTabOpened({ group: props.collection, tabId: tab.id });
               }}
               class={`flex shrink-0 items-center gap-2 px-3 py-1 text-xs rounded-t cursor-pointer whitespace-nowrap ${
                 tab.id === activeTabId()

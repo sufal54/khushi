@@ -12,16 +12,16 @@ import {
   FiHeart,
   FiMoreVertical,
   FiPlus,
-  FiRefreshCw,
   FiTrash2,
   FiX,
 } from "solid-icons/fi";
 
 type Props = {
+  setMenuEl: (el: HTMLElement) => void;
   collectionList: string[];
   activeCollection: string;
   setActiveCollection: (value: string) => void;
-  setIsShowMenu: (value: boolean) => void;
+  closeMenu: () => void;
   setCollection: (value: string) => void;
   addCollection: (name: string) => void;
   deleteCollection: (name: string) => void;
@@ -89,7 +89,7 @@ export default function Menu(props: Props) {
   const selectCollection = (name: string) => {
     props.setActiveCollection(name);
     props.setCollection(name);
-    props.setIsShowMenu(false);
+    props.closeMenu();
   };
 
   // ------------------------------------------------------------
@@ -177,6 +177,9 @@ export default function Menu(props: Props) {
 
   return (
     <aside
+      ref={(el) => {
+        props.setMenuEl(el);
+      }}
       style={{
         width: `${menuWidth()}px`,
       }}
@@ -205,7 +208,7 @@ export default function Menu(props: Props) {
           </button>
 
           <button
-            onClick={() => props.setIsShowMenu(false)}
+            onClick={props.closeMenu}
             title="Close"
             class="flex h-8 w-8 items-center justify-center rounded-md text-zinc-400 transition hover:bg-zinc-800 hover:text-white"
           >
@@ -368,7 +371,7 @@ export default function Menu(props: Props) {
         </button>
 
         <button
-          onClick={() => props.setIsShowMenu(false)}
+          onClick={props.closeMenu}
           class="flex w-full items-center justify-center gap-2 rounded-md bg-zinc-900 py-2 text-sm text-zinc-400 transition hover:bg-zinc-800 hover:text-white"
         >
           <FiX size={15} />

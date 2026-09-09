@@ -29,7 +29,7 @@ export async function sendRequest(
   try {
     response = await fetch(url, options);
   } catch (e: any) {
-    throw new Error(`Request error: ${e.message}`);
+    throw new Error(e);
   }
 
   const duration_ms = Math.round(performance.now() - start);

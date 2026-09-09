@@ -3,7 +3,6 @@ import {
   createSignal,
   useContext,
   onMount,
-  createEffect,
   type ParentComponent,
 } from "solid-js";
 
@@ -11,11 +10,12 @@ import { load, type Store } from "@tauri-apps/plugin-store";
 import type { RequestTab } from "../components/Container";
 
 type Tabs = Record<string, RequestTab[]>;
+type LastTab = { group: string; tabId: string };
 
 type StoreContextType = {
   user: () => string | null;
   login: (name: string) => Promise<void>;
-
+  lastTab: () => LastTab | null;
   tabs: () => Tabs;
 
   addCollection: (name: string) => Promise<void>;
@@ -26,6 +26,7 @@ type StoreContextType = {
   renameTab: (group: string, id: string, name: string) => Promise<void>;
   updateTab: (group: string, tab: RequestTab) => Promise<void>;
   removeTab: (group: string, id: string) => Promise<void>;
+  setLastTabOpened: (lastTabOpened: LastTab) => Promise<void>;
 };
 
 const StoreContext = createContext<StoreContextType>();
@@ -35,6 +36,7 @@ export const StoreProvider: ParentComponent = (props) => {
 
   const [tabs, setTabs] = createSignal<Tabs>({});
   const [user, setUser] = createSignal<string | null>(null);
+  const [lastTab, setLastTab] = createSignal<LastTab | null>(null);
 
   // Important: don't persist until the initial store has finished loading.
   const [storeReady, setStoreReady] = createSignal(false);
@@ -61,6 +63,11 @@ export const StoreProvider: ParentComponent = (props) => {
 
       if (savedUser) {
         setUser(savedUser);
+      }
+
+      const savedLastTab = await store.get<LastTab>("lastTab");
+      if (savedLastTab) {
+        setLastTab(savedLastTab);
       }
 
       setStoreReady(true);
@@ -90,6 +97,31 @@ export const StoreProvider: ParentComponent = (props) => {
     } catch (error) {
       console.error("Failed to save tabs:", error);
     }
+  };
+
+  /*
+   * PERSIST LAST TABS
+   */
+  const lastTabSave = async () => {
+    const ready = storeReady();
+    const store = tauriStore();
+    const currentTabs = lastTab();
+
+    if (!ready || !store) {
+      return;
+    }
+
+    try {
+      await store.set("lastTab", currentTabs);
+      await store.save();
+    } catch (error) {
+      console.error("Failed to save tabs:", error);
+    }
+  };
+
+  const setLastTabOpened = async (lastTabOpened: LastTab) => {
+    setLastTab(lastTabOpened);
+    await lastTabSave();
   };
 
   /*
@@ -256,6 +288,7 @@ export const StoreProvider: ParentComponent = (props) => {
       value={{
         user,
         login,
+        lastTab,
 
         tabs,
 
@@ -267,6 +300,7 @@ export const StoreProvider: ParentComponent = (props) => {
         renameTab,
         updateTab,
         removeTab,
+        setLastTabOpened,
       }}
     >
       {props.children}

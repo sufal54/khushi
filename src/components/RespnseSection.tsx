@@ -90,7 +90,8 @@ export default function ResponseSection(props: ResponseSectionProps) {
               props.activeResponseTab === "cookies"
                 ? "bg-zinc-800 text-white"
                 : "bg-zinc-900 text-zinc-400"
-            }`}
+            }
+                ${props.cookies.length > 0 ? "block" : "hidden"}`}
           >
             Cookies
           </button>

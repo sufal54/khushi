@@ -1,7 +1,8 @@
-import { For, Show } from "solid-js";
+import { createMemo, createSignal, For, Show } from "solid-js";
 import { FiPlus, FiX } from "solid-icons/fi";
 
 import { BodyType, RequestTab } from "./Container";
+import ErrorPopup from "./ErrorPopup";
 
 type RequestSectionProps = {
   handleSubmit: (e: SubmitEvent) => Promise<void>;
@@ -35,6 +36,13 @@ type RequestSectionProps = {
 };
 
 export function RequestSection(props: RequestSectionProps) {
+  const [showError, setShowError] = createSignal<boolean>(true);
+
+  const visibleError = createMemo(() => {
+    if (!showError()) return null;
+    return props.activeTab.error;
+  });
+
   const methods = ["GET", "POST", "PUT", "DELETE", "PATCH"];
 
   return (
@@ -47,6 +55,7 @@ export function RequestSection(props: RequestSectionProps) {
       <form
         onSubmit={async (e) => {
           await props.handleSubmit(e);
+          setShowError(true);
         }}
         class="space-y-4"
       >
@@ -271,14 +280,18 @@ export function RequestSection(props: RequestSectionProps) {
             }`}
           />
         </div>
-
-        {/* Error */}
-        <Show when={props.activeTab.error}>
-          <p class="rounded-md border border-red-900 px-3 py-2 text-xs text-red-400">
-            {props.activeTab.error}
-          </p>
-        </Show>
       </form>
+
+      <Show when={visibleError()}>
+        {(error) => (
+          <ErrorPopup
+            error={error()}
+            onClose={() => {
+              setShowError(false);
+            }}
+          />
+        )}
+      </Show>
     </section>
   );
 }
