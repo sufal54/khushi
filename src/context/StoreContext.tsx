@@ -4,9 +4,10 @@ import {
   useContext,
   onMount,
   type ParentComponent,
+  Accessor,
 } from "solid-js";
 
-import { load, type Store } from "@tauri-apps/plugin-store";
+import { load, Store } from "@tauri-apps/plugin-store";
 import type { RequestTab } from "../components/Container";
 
 type Tabs = Record<string, RequestTab[]>;
@@ -17,6 +18,10 @@ type StoreContextType = {
   login: (name: string) => Promise<void>;
   lastTab: () => LastTab | null;
   tabs: () => Tabs;
+  showUpdateNote: Accessor<boolean>;
+  storeReady: Accessor<boolean>;
+
+  neverShowUpdateNote: () => Promise<void>;
 
   addCollection: (name: string) => Promise<void>;
   renameCollection: (oldName: string, newName: string) => Promise<void>;
@@ -37,6 +42,7 @@ export const StoreProvider: ParentComponent = (props) => {
   const [tabs, setTabs] = createSignal<Tabs>({});
   const [user, setUser] = createSignal<string | null>(null);
   const [lastTab, setLastTab] = createSignal<LastTab | null>(null);
+  const [showUpdateNote, setShowUpdateNote] = createSignal<boolean>(true);
 
   // Important: don't persist until the initial store has finished loading.
   const [storeReady, setStoreReady] = createSignal(false);
@@ -70,6 +76,13 @@ export const StoreProvider: ParentComponent = (props) => {
         setLastTab(savedLastTab);
       }
 
+      const savedShowUpdateNote = await store.get<boolean>("showUpdateNote");
+      if (typeof savedShowUpdateNote === "boolean") {
+        setShowUpdateNote(savedShowUpdateNote);
+      } else {
+        setShowUpdateNote(true);
+      }
+
       setStoreReady(true);
     } catch (error) {
       console.error("Failed to load store:", error);
@@ -78,6 +91,23 @@ export const StoreProvider: ParentComponent = (props) => {
       setStoreReady(true);
     }
   });
+
+  const neverShowUpdateNote = async () => {
+    const ready = storeReady();
+    const store = tauriStore();
+
+    if (!ready || !store) {
+      return;
+    }
+
+    try {
+      setShowUpdateNote(false);
+      await store.set("showUpdateNote", false);
+      await store.save();
+    } catch (error) {
+      console.error("Failed to save tabs:", error);
+    }
+  };
 
   /*
    * PERSIST TABS
@@ -289,8 +319,12 @@ export const StoreProvider: ParentComponent = (props) => {
         user,
         login,
         lastTab,
+        storeReady,
 
         tabs,
+        showUpdateNote,
+
+        neverShowUpdateNote,
 
         addCollection,
         renameCollection,

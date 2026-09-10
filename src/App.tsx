@@ -1,10 +1,12 @@
-import { createEffect, createSignal, on } from "solid-js";
+import { createEffect, createSignal, on, onMount } from "solid-js";
 import { FiMenu } from "solid-icons/fi";
 
 import { Container } from "./components/Container";
 import Menu from "./components/Menu";
 import { useStore } from "./context/StoreContext";
 import { animate } from "motion";
+import UpdateNotification from "./components/UpdateNotification";
+import { getName } from "@tauri-apps/api/app";
 
 export default function App() {
   const {
@@ -18,7 +20,13 @@ export default function App() {
   const [isShowMenu, setIsShowMenu] = createSignal(false);
   const [activeCollection, setActiveCollection] = createSignal("test");
 
+  const [appName, setAppName] = createSignal("");
+
   const collectionList = () => Object.keys(tabGroups());
+
+  onMount(async () => {
+    setAppName(await getName());
+  });
 
   let menuEl: HTMLElement | undefined;
 
@@ -87,7 +95,7 @@ export default function App() {
 
           <div>
             <h1 class="text-xl font-semibold tracking-tight">
-              Khushi API Client
+              {appName()} API Client
             </h1>
 
             <p class="text-xs text-zinc-400">API Tester</p>
@@ -109,6 +117,8 @@ export default function App() {
             setActiveCollection={setActiveCollection}
           />
         )}
+
+        <UpdateNotification />
 
         <Container collection={activeCollection()} />
       </main>
