@@ -23,18 +23,18 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: pnpm
+        uses: actions/checkout@v5
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
@@ -55,6 +55,13 @@ jobs:
             librsvg2-dev \
             patchelf \
             rpm
+
+      - name: Check tools
+        run: |
+          node --version
+          pnpm --version
+          rustc --version
+          cargo --version
 
       - name: Install JavaScript dependencies
         run: pnpm install --frozen-lockfile
@@ -83,29 +90,36 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: pnpm
+        uses: actions/checkout@v5
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: ${{ env.PNPM_VERSION }}
 
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
+
+      - name: Check tools
+        shell: pwsh
+        run: |
+          node --version
+          pnpm --version
+          rustc --version
+          cargo --version
 
       - name: Install JavaScript dependencies
         run: pnpm install --frozen-lockfile
 
       - name: Build Windows
         run: |
-          pnpm tauri build `
-            --bundles nsis,msi
+          pnpm tauri build --bundles nsis,msi
 
       - name: Upload Windows artifacts
         uses: actions/upload-artifact@v4
@@ -125,18 +139,18 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: pnpm
+        uses: actions/checkout@v5
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
@@ -149,13 +163,19 @@ jobs:
           xcodebuild -version
           xcrun --sdk macosx --show-sdk-path
 
-      - name: Install CocoaPods
+      - name: Check CocoaPods
         run: |
           if ! command -v pod >/dev/null 2>&1; then
             brew install cocoapods
           fi
-
           pod --version
+
+      - name: Check tools
+        run: |
+          node --version
+          pnpm --version
+          rustc --version
+          cargo --version
 
       - name: Install JavaScript dependencies
         run: pnpm install --frozen-lockfile
@@ -184,18 +204,18 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: pnpm
+        uses: actions/checkout@v5
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
@@ -208,28 +228,34 @@ jobs:
           xcodebuild -version
           xcrun --sdk iphoneos --show-sdk-path
 
-      - name: Install CocoaPods
+      - name: Check CocoaPods
         run: |
           if ! command -v pod >/dev/null 2>&1; then
             brew install cocoapods
           fi
+          pod --version
 
+      - name: Check tools
+        run: |
+          node --version
+          pnpm --version
+          rustc --version
+          cargo --version
+          xcodebuild -version
           pod --version
 
       - name: Install JavaScript dependencies
         run: pnpm install --frozen-lockfile
 
       - name: Initialize iOS project
-        run: |
-          pnpm tauri ios init
+        run: pnpm tauri ios init
 
-      - name: Install iOS pods
+      - name: Install iOS dependencies
         working-directory: src-tauri/gen/apple
         run: pod install
 
       - name: Build iOS
-        run: |
-          pnpm tauri ios build
+        run: pnpm tauri ios build
 
       - name: Upload iOS build
         uses: actions/upload-artifact@v4
@@ -249,18 +275,18 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: pnpm
+        uses: actions/checkout@v5
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -273,13 +299,16 @@ jobs:
         with:
           targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
 
-      # GitHub's Ubuntu runner already contains Android SDK,
-      # build-tools, platforms and NDK.
       - name: Check Android environment
         run: |
           echo "ANDROID_HOME=$ANDROID_HOME"
           echo "ANDROID_NDK_HOME=$ANDROID_NDK_HOME"
 
+          node --version
+          pnpm --version
+          java -version
+          rustc --version
+          cargo --version
           sdkmanager --version
           adb version
 
@@ -287,12 +316,10 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Initialize Android project
-        run: |
-          pnpm tauri android init
+        run: pnpm tauri android init
 
       - name: Build Android
-        run: |
-          pnpm tauri android build
+        run: pnpm tauri android build
 
       - name: Upload Android artifacts
         uses: actions/upload-artifact@v4
