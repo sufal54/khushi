@@ -1,0 +1,304 @@
+name: Build Khushi
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: 22
+  PNPM_VERSION: 10
+
+jobs:
+  # ============================================================
+  # LINUX
+  # ============================================================
+  linux:
+    name: Linux
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Tauri Linux dependencies
+        run: |
+          sudo apt-get update
+
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            build-essential \
+            curl \
+            wget \
+            file \
+            libxdo-dev \
+            libssl-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            rpm
+
+      - name: Install JavaScript dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Linux
+        run: |
+          pnpm tauri build \
+            --bundles deb,rpm,appimage
+
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: khushi-linux
+          if-no-files-found: error
+          path: |
+            src-tauri/target/release/bundle/deb/*
+            src-tauri/target/release/bundle/rpm/*
+            src-tauri/target/release/bundle/appimage/*
+
+  # ============================================================
+  # WINDOWS
+  # ============================================================
+  windows:
+    name: Windows
+    runs-on: windows-2025
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install JavaScript dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Windows
+        run: |
+          pnpm tauri build `
+            --bundles nsis,msi
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: khushi-windows
+          if-no-files-found: error
+          path: |
+            src-tauri/target/release/bundle/nsis/*
+            src-tauri/target/release/bundle/msi/*
+
+  # ============================================================
+  # MACOS
+  # ============================================================
+  macos:
+    name: macOS ARM64
+    runs-on: macos-26
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin
+
+      - name: Setup Xcode
+        run: |
+          sudo xcode-select -s /Applications/Xcode.app
+          xcodebuild -version
+          xcrun --sdk macosx --show-sdk-path
+
+      - name: Install CocoaPods
+        run: |
+          if ! command -v pod >/dev/null 2>&1; then
+            brew install cocoapods
+          fi
+
+          pod --version
+
+      - name: Install JavaScript dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build macOS
+        run: |
+          pnpm tauri build \
+            --target aarch64-apple-darwin \
+            --bundles app,dmg
+
+      - name: Upload macOS artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: khushi-macos-arm64
+          if-no-files-found: error
+          path: |
+            src-tauri/target/aarch64-apple-darwin/release/bundle/app/*
+            src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*
+
+  # ============================================================
+  # iOS
+  # ============================================================
+  ios:
+    name: iOS
+    runs-on: macos-26
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-ios,x86_64-apple-ios,aarch64-apple-ios-sim
+
+      - name: Setup Xcode
+        run: |
+          sudo xcode-select -s /Applications/Xcode.app
+          xcodebuild -version
+          xcrun --sdk iphoneos --show-sdk-path
+
+      - name: Install CocoaPods
+        run: |
+          if ! command -v pod >/dev/null 2>&1; then
+            brew install cocoapods
+          fi
+
+          pod --version
+
+      - name: Install JavaScript dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Initialize iOS project
+        run: |
+          pnpm tauri ios init
+
+      - name: Install iOS pods
+        working-directory: src-tauri/gen/apple
+        run: pod install
+
+      - name: Build iOS
+        run: |
+          pnpm tauri ios build
+
+      - name: Upload iOS build
+        uses: actions/upload-artifact@v4
+        with:
+          name: khushi-ios
+          if-no-files-found: warn
+          path: |
+            src-tauri/gen/apple/build/**
+            src-tauri/gen/apple/DerivedData/**
+
+  # ============================================================
+  # ANDROID
+  # ============================================================
+  android:
+    name: Android
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
+
+      # GitHub's Ubuntu runner already contains Android SDK,
+      # build-tools, platforms and NDK.
+      - name: Check Android environment
+        run: |
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          echo "ANDROID_NDK_HOME=$ANDROID_NDK_HOME"
+
+          sdkmanager --version
+          adb version
+
+      - name: Install JavaScript dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Initialize Android project
+        run: |
+          pnpm tauri android init
+
+      - name: Build Android
+        run: |
+          pnpm tauri android build
+
+      - name: Upload Android artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: khushi-android
+          if-no-files-found: error
+          path: |
+            src-tauri/gen/android/app/build/outputs/apk/**/*.apk
+            src-tauri/gen/android/app/build/outputs/bundle/**/*.aab

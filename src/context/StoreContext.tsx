@@ -61,7 +61,7 @@ export const StoreProvider: ParentComponent = (props) => {
 
       const savedTabs = await store.get<Tabs>("Khushi");
 
-      if (savedTabs && typeof savedTabs === "object") {
+      if (savedTabs) {
         setTabs(savedTabs);
       }
 
@@ -117,7 +117,7 @@ export const StoreProvider: ParentComponent = (props) => {
     const store = tauriStore();
     const currentTabs = tabs();
 
-    if (!ready || !store) {
+    if (!ready || !store || !storeReady() || !currentTabs) {
       return;
     }
 
@@ -137,7 +137,7 @@ export const StoreProvider: ParentComponent = (props) => {
     const store = tauriStore();
     const currentTabs = lastTab();
 
-    if (!ready || !store) {
+    if (!ready || !store || !storeReady()) {
       return;
     }
 
@@ -151,6 +151,7 @@ export const StoreProvider: ParentComponent = (props) => {
 
   const setLastTabOpened = async (lastTabOpened: LastTab) => {
     setLastTab(lastTabOpened);
+
     await lastTabSave();
   };
 
