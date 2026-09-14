@@ -223,13 +223,6 @@ jobs:
           xcodebuild -version
           xcrun --sdk iphoneos --show-sdk-path
 
-      - name: Check CocoaPods
-        run: |
-          if ! command -v pod >/dev/null 2>&1; then
-            brew install cocoapods
-          fi
-          pod --version
-
       - name: Check tools
         run: |
           node --version
@@ -237,17 +230,12 @@ jobs:
           rustc --version
           cargo --version
           xcodebuild -version
-          pod --version
 
       - name: Install JavaScript dependencies
         run: pnpm install --frozen-lockfile
 
       - name: Initialize iOS project
         run: pnpm tauri ios init
-
-      - name: Install iOS dependencies
-        working-directory: src-tauri/gen/apple
-        run: pod install
 
       - name: Build iOS
         run: pnpm tauri ios build
@@ -260,8 +248,7 @@ jobs:
           path: |
             src-tauri/gen/apple/build/**
             src-tauri/gen/apple/DerivedData/**
-
-  # ============================================================
+    # ============================================================
   # ANDROID
   # ============================================================
   android:
@@ -289,6 +276,19 @@ jobs:
           distribution: temurin
           java-version: 21
 
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK packages
+        run: |
+          sdkmanager --install \
+            "platform-tools" \
+            "platforms;android-36" \
+            "build-tools;36.0.0" \
+            "ndk;27.3.13750724"
+
+          yes | sdkmanager --licenses
+
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
         with:
@@ -297,6 +297,7 @@ jobs:
       - name: Check Android environment
         run: |
           echo "ANDROID_HOME=$ANDROID_HOME"
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
           echo "ANDROID_NDK_HOME=$ANDROID_NDK_HOME"
 
           node --version
