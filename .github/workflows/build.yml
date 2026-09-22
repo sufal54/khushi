@@ -67,49 +67,16 @@ jobs:
           pnpm tauri build \
             --bundles deb,rpm,appimage
 
-        # -------------------------
-        # ZIP Linux packages
-        # -------------------------
-
-      - name: Zip Linux DEB
-        working-directory: src-tauri/target/release/bundle/deb
-        run: |
-          zip -r "$GITHUB_WORKSPACE/khushi-linux-deb-0.1.2.zip" .
-
-      - name: Zip Linux RPM
-        working-directory: src-tauri/target/release/bundle/rpm
-        run: |
-          zip -r "$GITHUB_WORKSPACE/khushi-linux-rpm-0.1.2.zip" .
-
-      - name: Zip Linux AppImage
-        working-directory: src-tauri/target/release/bundle/appimage
-        run: |
-          zip -r "$GITHUB_WORKSPACE/khushi-linux-appimage-0.1.2.zip" .
-
-      # -------------------------
-      # Upload artifacts
-      # -------------------------
-
-      - name: Upload Linux DEB
+      - name: Upload Linux artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: khushi-linux-deb
+          name: khushi-linux
           if-no-files-found: error
-          path: khushi-linux-deb-0.1.2.zip
+          path: |
+            src-tauri/target/release/bundle/deb/*
+            src-tauri/target/release/bundle/rpm/*
+            src-tauri/target/release/bundle/appimage/*
 
-      - name: Upload Linux RPM
-        uses: actions/upload-artifact@v4
-        with:
-          name: khushi-linux-rpm
-          if-no-files-found: error
-          path: khushi-linux-rpm-0.1.2.zip
-
-      - name: Upload Linux AppImage
-        uses: actions/upload-artifact@v4
-        with:
-          name: khushi-linux-appimage
-          if-no-files-found: error
-          path: khushi-linux-appimage-0.1.2.zip
   # ============================================================
   # WINDOWS
   # ============================================================
@@ -149,29 +116,14 @@ jobs:
       - name: Build Windows
         run: pnpm tauri build --bundles nsis,msi
 
-      - name: Zip Windows NSIS
-        working-directory: src-tauri/target/release/bundle/nsis
-        run: |
-          7z a "$GITHUB_WORKSPACE/khushi-windows-nsis-0.1.2.zip" .
-
-      - name: Zip Windows MSI
-        working-directory: src-tauri/target/release/bundle/msi
-        run: |
-          7z a "$GITHUB_WORKSPACE/khushi-windows-msi-0.1.2.zip" .
-
-      - name: Upload Windows NSIS
+      - name: Upload Windows artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: khushi-windows-nsis
+          name: khushi-windows
           if-no-files-found: error
-          path: khushi-windows-nsis-0.1.2.zip
-
-      - name: Upload Windows MSI
-        uses: actions/upload-artifact@v4
-        with:
-          name: khushi-windows-msi
-          if-no-files-found: error
-          path: khushi-windows-msi-0.1.2.zip
+          path: |
+            src-tauri/target/release/bundle/nsis/*
+            src-tauri/target/release/bundle/msi/*
 
   # ============================================================
   # MACOS
@@ -229,29 +181,15 @@ jobs:
             --target aarch64-apple-darwin \
             --bundles app,dmg
 
-      - name: Zip macOS ARM64 APP
-        working-directory: src-tauri/target/aarch64-apple-darwin/release/bundle/app
-        run: |
-          zip -r "$GITHUB_WORKSPACE/khushi-macos-arm64-app-0.1.2.zip" .
-
-      - name: Zip macOS ARM64 DMG
-        working-directory: src-tauri/target/aarch64-apple-darwin/release/bundle/dmg
-        run: |
-          zip -r "$GITHUB_WORKSPACE/khushi-macos-arm64-dmg-0.1.2.zip" .
-
-      - name: Upload macOS ARM64 APP
+      - name: Upload macOS artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: khushi-macos-arm64-app
+          name: khushi-macos-arm64
           if-no-files-found: error
-          path: khushi-macos-arm64-app-0.1.2.zip
+          path: |
+            src-tauri/target/aarch64-apple-darwin/release/bundle/app/*
+            src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*
 
-      - name: Upload macOS ARM64 DMG
-        uses: actions/upload-artifact@v4
-        with:
-          name: khushi-macos-arm64-dmg
-          if-no-files-found: error
-          path: khushi-macos-arm64-dmg-0.1.2.zip
   # # ============================================================
   # # iOS
   # # ============================================================
