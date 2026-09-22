@@ -229,7 +229,7 @@ jobs:
             --target aarch64-apple-darwin \
             --bundles app,dmg
 
-        - name: Zip macOS ARM64 APP
+      - name: Zip macOS ARM64 APP
         working-directory: src-tauri/target/aarch64-apple-darwin/release/bundle/app
         run: |
           zip -r "$GITHUB_WORKSPACE/khushi-macos-arm64-app-0.1.2.zip" .
@@ -252,9 +252,9 @@ jobs:
           name: khushi-macos-arm64-dmg
           if-no-files-found: error
           path: khushi-macos-arm64-dmg-0.1.2.zip
-  #  ============================================================
-  #  iOS
-  #  ============================================================
+  # # ============================================================
+  # # iOS
+  # # ============================================================
   # ios:
   #   name: iOS
   #   runs-on: macos-26
@@ -310,9 +310,9 @@ jobs:
   #         path: |
   #           src-tauri/gen/apple/build/**
   #           src-tauri/gen/apple/DerivedData/**
-  #    ============================================================
-  #  ANDROID
-  #  ============================================================
+  #   # ============================================================
+  # # ANDROID
+  # # ============================================================
   # android:
   #   name: Android
   #   runs-on: ubuntu-24.04
