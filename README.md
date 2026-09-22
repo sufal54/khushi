@@ -59,12 +59,6 @@ No unnecessary features. No bloated UI. Just what you need to test and debug API
 
 ---
 
-## 📸 Screenshots
-
-> Screenshots coming soon.
-
----
-
 ## 📄 License
 
 MIT License
