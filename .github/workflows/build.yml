@@ -67,16 +67,49 @@ jobs:
           pnpm tauri build \
             --bundles deb,rpm,appimage
 
-      - name: Upload Linux artifacts
+        # -------------------------
+        # ZIP Linux packages
+        # -------------------------
+
+      - name: Zip Linux DEB
+        working-directory: src-tauri/target/release/bundle/deb
+        run: |
+          zip -r "$GITHUB_WORKSPACE/khushi-linux-deb-0.1.2.zip" .
+
+      - name: Zip Linux RPM
+        working-directory: src-tauri/target/release/bundle/rpm
+        run: |
+          zip -r "$GITHUB_WORKSPACE/khushi-linux-rpm-0.1.2.zip" .
+
+      - name: Zip Linux AppImage
+        working-directory: src-tauri/target/release/bundle/appimage
+        run: |
+          zip -r "$GITHUB_WORKSPACE/khushi-linux-appimage-0.1.2.zip" .
+
+      # -------------------------
+      # Upload artifacts
+      # -------------------------
+
+      - name: Upload Linux DEB
         uses: actions/upload-artifact@v4
         with:
-          name: khushi-linux
+          name: khushi-linux-deb
           if-no-files-found: error
-          path: |
-            src-tauri/target/release/bundle/deb/*
-            src-tauri/target/release/bundle/rpm/*
-            src-tauri/target/release/bundle/appimage/*
+          path: khushi-linux-deb-0.1.2.zip
 
+      - name: Upload Linux RPM
+        uses: actions/upload-artifact@v4
+        with:
+          name: khushi-linux-rpm
+          if-no-files-found: error
+          path: khushi-linux-rpm-0.1.2.zip
+
+      - name: Upload Linux AppImage
+        uses: actions/upload-artifact@v4
+        with:
+          name: khushi-linux-appimage
+          if-no-files-found: error
+          path: khushi-linux-appimage-0.1.2.zip
   # ============================================================
   # WINDOWS
   # ============================================================
@@ -116,14 +149,29 @@ jobs:
       - name: Build Windows
         run: pnpm tauri build --bundles nsis,msi
 
-      - name: Upload Windows artifacts
+      - name: Zip Windows NSIS
+        working-directory: src-tauri/target/release/bundle/nsis
+        run: |
+          7z a "$GITHUB_WORKSPACE/khushi-windows-nsis-0.1.2.zip" .
+
+      - name: Zip Windows MSI
+        working-directory: src-tauri/target/release/bundle/msi
+        run: |
+          7z a "$GITHUB_WORKSPACE/khushi-windows-msi-0.1.2.zip" .
+
+      - name: Upload Windows NSIS
         uses: actions/upload-artifact@v4
         with:
-          name: khushi-windows
+          name: khushi-windows-nsis
           if-no-files-found: error
-          path: |
-            src-tauri/target/release/bundle/nsis/*
-            src-tauri/target/release/bundle/msi/*
+          path: khushi-windows-nsis-0.1.2.zip
+
+      - name: Upload Windows MSI
+        uses: actions/upload-artifact@v4
+        with:
+          name: khushi-windows-msi
+          if-no-files-found: error
+          path: khushi-windows-msi-0.1.2.zip
 
   # ============================================================
   # MACOS
@@ -181,147 +229,161 @@ jobs:
             --target aarch64-apple-darwin \
             --bundles app,dmg
 
-      - name: Upload macOS artifacts
+        - name: Zip macOS ARM64 APP
+        working-directory: src-tauri/target/aarch64-apple-darwin/release/bundle/app
+        run: |
+          zip -r "$GITHUB_WORKSPACE/khushi-macos-arm64-app-0.1.2.zip" .
+
+      - name: Zip macOS ARM64 DMG
+        working-directory: src-tauri/target/aarch64-apple-darwin/release/bundle/dmg
+        run: |
+          zip -r "$GITHUB_WORKSPACE/khushi-macos-arm64-dmg-0.1.2.zip" .
+
+      - name: Upload macOS ARM64 APP
         uses: actions/upload-artifact@v4
         with:
-          name: khushi-macos-arm64
+          name: khushi-macos-arm64-app
           if-no-files-found: error
-          path: |
-            src-tauri/target/aarch64-apple-darwin/release/bundle/app/*
-            src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*
+          path: khushi-macos-arm64-app-0.1.2.zip
 
-  # ============================================================
-  # iOS
-  # ============================================================
-  ios:
-    name: iOS
-    runs-on: macos-26
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 11
-
-      - name: Setup Node
-        uses: actions/setup-node@v5
-        with:
-          node-version: 24
-          cache: pnpm
-
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: aarch64-apple-ios,x86_64-apple-ios,aarch64-apple-ios-sim
-
-      - name: Setup Xcode
-        run: |
-          sudo xcode-select -s /Applications/Xcode.app
-          xcodebuild -version
-          xcrun --sdk iphoneos --show-sdk-path
-
-      - name: Check tools
-        run: |
-          node --version
-          pnpm --version
-          rustc --version
-          cargo --version
-          xcodebuild -version
-
-      - name: Install JavaScript dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Initialize iOS project
-        run: pnpm tauri ios init
-
-      - name: Build iOS
-        run: pnpm tauri ios build
-
-      - name: Upload iOS build
+      - name: Upload macOS ARM64 DMG
         uses: actions/upload-artifact@v4
         with:
-          name: khushi-ios
-          if-no-files-found: warn
-          path: |
-            src-tauri/gen/apple/build/**
-            src-tauri/gen/apple/DerivedData/**
-    # ============================================================
-  # ANDROID
-  # ============================================================
-  android:
-    name: Android
-    runs-on: ubuntu-24.04
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 11
-
-      - name: Setup Node
-        uses: actions/setup-node@v5
-        with:
-          node-version: 24
-          cache: pnpm
-
-      - name: Setup Java
-        uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version: 21
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install Android SDK packages
-        run: |
-          sdkmanager --install \
-            "platform-tools" \
-            "platforms;android-36" \
-            "build-tools;36.0.0" \
-            "ndk;27.3.13750724"
-
-          yes | sdkmanager --licenses
-
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
-
-      - name: Check Android environment
-        run: |
-          echo "ANDROID_HOME=$ANDROID_HOME"
-          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
-          echo "ANDROID_NDK_HOME=$ANDROID_NDK_HOME"
-
-          node --version
-          pnpm --version
-          java -version
-          rustc --version
-          cargo --version
-          sdkmanager --version
-          adb version
-
-      - name: Install JavaScript dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Initialize Android project
-        run: pnpm tauri android init
-
-      - name: Build Android
-        run: pnpm tauri android build
-
-      - name: Upload Android artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: khushi-android
+          name: khushi-macos-arm64-dmg
           if-no-files-found: error
-          path: |
-            src-tauri/gen/android/app/build/outputs/apk/**/*.apk
-            src-tauri/gen/android/app/build/outputs/bundle/**/*.aab
+          path: khushi-macos-arm64-dmg-0.1.2.zip
+  # # ============================================================
+  # # iOS
+  # # ============================================================
+  # ios:
+  #   name: iOS
+  #   runs-on: macos-26
+
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v5
+
+  #     - name: Setup pnpm
+  #       uses: pnpm/action-setup@v4
+  #       with:
+  #         version: 11
+
+  #     - name: Setup Node
+  #       uses: actions/setup-node@v5
+  #       with:
+  #         node-version: 24
+  #         cache: pnpm
+
+  #     - name: Setup Rust
+  #       uses: dtolnay/rust-toolchain@stable
+  #       with:
+  #         targets: aarch64-apple-ios,x86_64-apple-ios,aarch64-apple-ios-sim
+
+  #     - name: Setup Xcode
+  #       run: |
+  #         sudo xcode-select -s /Applications/Xcode.app
+  #         xcodebuild -version
+  #         xcrun --sdk iphoneos --show-sdk-path
+
+  #     - name: Check tools
+  #       run: |
+  #         node --version
+  #         pnpm --version
+  #         rustc --version
+  #         cargo --version
+  #         xcodebuild -version
+
+  #     - name: Install JavaScript dependencies
+  #       run: pnpm install --frozen-lockfile
+
+  #     - name: Initialize iOS project
+  #       run: pnpm tauri ios init
+
+  #     - name: Build iOS
+  #       run: pnpm tauri ios build
+
+  #     - name: Upload iOS build
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: khushi-ios
+  #         if-no-files-found: warn
+  #         path: |
+  #           src-tauri/gen/apple/build/**
+  #           src-tauri/gen/apple/DerivedData/**
+  #   # ============================================================
+  # # ANDROID
+  # # ============================================================
+  # android:
+  #   name: Android
+  #   runs-on: ubuntu-24.04
+
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v5
+
+  #     - name: Setup pnpm
+  #       uses: pnpm/action-setup@v4
+  #       with:
+  #         version: 11
+
+  #     - name: Setup Node
+  #       uses: actions/setup-node@v5
+  #       with:
+  #         node-version: 24
+  #         cache: pnpm
+
+  #     - name: Setup Java
+  #       uses: actions/setup-java@v5
+  #       with:
+  #         distribution: temurin
+  #         java-version: 21
+
+  #     - name: Setup Android SDK
+  #       uses: android-actions/setup-android@v3
+
+  #     - name: Install Android SDK packages
+  #       run: |
+  #         sdkmanager --install \
+  #           "platform-tools" \
+  #           "platforms;android-36" \
+  #           "build-tools;36.0.0" \
+  #           "ndk;27.3.13750724"
+
+  #         yes | sdkmanager --licenses
+
+  #     - name: Setup Rust
+  #       uses: dtolnay/rust-toolchain@stable
+  #       with:
+  #         targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
+
+  #     - name: Check Android environment
+  #       run: |
+  #         echo "ANDROID_HOME=$ANDROID_HOME"
+  #         echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+  #         echo "ANDROID_NDK_HOME=$ANDROID_NDK_HOME"
+
+  #         node --version
+  #         pnpm --version
+  #         java -version
+  #         rustc --version
+  #         cargo --version
+  #         sdkmanager --version
+  #         adb version
+
+  #     - name: Install JavaScript dependencies
+  #       run: pnpm install --frozen-lockfile
+
+  #     - name: Initialize Android project
+  #       run: pnpm tauri android init
+
+  #     - name: Build Android
+  #       run: pnpm tauri android build
+
+  #     - name: Upload Android artifacts
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: khushi-android
+  #         if-no-files-found: error
+  #         path: |
+  #           src-tauri/gen/android/app/build/outputs/apk/**/*.apk
+  #           src-tauri/gen/android/app/build/outputs/bundle/**/*.aab
