@@ -60,7 +60,7 @@ export function RequestSection(props: RequestSectionProps) {
         class="space-y-4"
       >
         {/* Sticky bar */}
-        <div class="sticky top-0 z-10 flex gap-2 border-b border-zinc-800 bg-zinc-900/80 pb-2 backdrop-blur">
+        <div class="sticky top-0 z-10 flex gap-2 border-b border-zinc-800 bg-zinc-900/80 pb-2 backdrop-blur overflow-x-scroll">
           {/* Method */}
           <select
             value={props.activeTab.method}
@@ -94,7 +94,7 @@ export function RequestSection(props: RequestSectionProps) {
                 url: e.currentTarget.value,
               }));
             }}
-            class="min-w-0 flex-1 rounded-md border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-sm outline-none focus:border-zinc-500"
+            class="min-w-30 flex-1 rounded-md border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-sm outline-none focus:border-zinc-500"
           />
 
           {/* Send */}
@@ -127,6 +127,9 @@ export function RequestSection(props: RequestSectionProps) {
           <Show when={props.showHeaders}>
             <For each={props.activeTab.headers}>
               {(h) => {
+                const [localName, setLocalName] = createSignal(h.name);
+                const [localValue, setLocalValue] = createSignal(h.value);
+
                 const contentTypeDisabled =
                   h.name === "Content-Type" && props.bodyFormat !== "none";
 
@@ -143,6 +146,12 @@ export function RequestSection(props: RequestSectionProps) {
                       value={h.isCustom ? "Custom" : h.name}
                       onInput={async (e) => {
                         const value = e.currentTarget.value;
+
+                        if (value === "Custom") {
+                          setLocalName("");
+                        } else {
+                          setLocalName(value);
+                        }
 
                         await props.updateActiveTab((tab) => ({
                           ...tab,
@@ -177,42 +186,45 @@ export function RequestSection(props: RequestSectionProps) {
                       >
                         {(header) => <option value={header}>{header}</option>}
                       </For>
+
+                      {/* Custom option */}
+                      <option value="Custom">Custom</option>
                     </select>
 
                     {/* Custom header name */}
                     <Show when={h.isCustom}>
                       <input
-                        value={h.name}
-                        onInput={async (e) =>
-                          await props.updateHeader(
-                            h.id,
-                            "name",
-                            e.currentTarget.value,
-                          )
-                        }
+                        value={localName()}
+                        onInput={(e) => {
+                          setLocalName(e.currentTarget.value);
+                        }}
+                        onBlur={async () => {
+                          await props.updateHeader(h.id, "name", localName());
+                        }}
                         placeholder="Key"
-                        class="w-40 rounded-md border border-zinc-700 bg-zinc-900 px-2 py-1 text-xs outline-none focus:border-zinc-500"
+                        class="min-w-40 flex-1 rounded-md border border-zinc-700 bg-zinc-900 px-2 py-1 text-xs outline-none focus:border-zinc-500"
                       />
                     </Show>
 
                     {/* Header value */}
                     <input
-                      value={h.value}
-                      onInput={async (e) =>
-                        await props.updateHeader(
-                          h.id,
-                          "value",
-                          e.currentTarget.value,
-                        )
-                      }
+                      value={localValue()}
+                      onInput={(e) => {
+                        setLocalValue(e.currentTarget.value);
+                      }}
+                      onBlur={async () => {
+                        await props.updateHeader(h.id, "value", localValue());
+                      }}
                       placeholder="Value"
-                      class="min-w-0 flex-1 rounded-md border border-zinc-700 bg-zinc-900 px-2 py-1 text-xs outline-none focus:border-zinc-500"
+                      class="min-w-40 flex-1 rounded-md border border-zinc-700 bg-zinc-900 px-2 py-1 text-xs outline-none focus:border-zinc-500"
                     />
 
                     {/* Remove */}
                     <button
                       type="button"
-                      onClick={async () => await props.removeHeader(h.id)}
+                      onClick={async () => {
+                        await props.removeHeader(h.id);
+                      }}
                       title="Remove header"
                       class="flex h-6 w-6 shrink-0 items-center justify-center rounded text-zinc-500 hover:bg-red-500/10 hover:text-red-400"
                     >

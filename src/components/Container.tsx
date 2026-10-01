@@ -50,8 +50,8 @@ const COMMON_HEADERS = [
   "Cache-Control",
   "Accept-Encoding",
   "Accept-Language",
+  "Cookie",
   "X-API-Key",
-  "Custom",
 ];
 
 const METHOD_COLOR: Record<string, string> = {
