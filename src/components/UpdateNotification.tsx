@@ -40,9 +40,12 @@ export default function UpdateNotification() {
 
   const openNotification = async () => {
     try {
-      const res = await fetch("https://khushi-liart.vercel.app/api/update", {
-        cache: "no-store",
-      });
+      const res = await fetch(
+        "https://sufal54.github.io/khushi_web/update.json",
+        {
+          cache: "no-store",
+        },
+      );
 
       if (!res.ok) return;
 
@@ -104,7 +107,7 @@ export default function UpdateNotification() {
       {(data) => (
         <div
           ref={notification}
-          class="fixed top-5 right-5 z-50 w-96 rounded-xl border border-zinc-700 bg-zinc-900 p-4 shadow-2xl overflow-scroll"
+          class="fixed top-5 right-5 z-50 w-96 pt-[env(safe-area-inset-top)] rounded-xl border border-zinc-700 bg-zinc-900 p-4 shadow-2xl overflow-scroll"
         >
           <div class="flex items-start gap-3">
             <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-500/10 text-blue-400">
