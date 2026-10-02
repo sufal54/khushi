@@ -361,22 +361,9 @@ export function Container(props: { collection: string }) {
     }));
 
     try {
-      const cookieHeader = cookies()
-        .map((cookie) => `${cookie.name}=${cookie.value}`)
-        .join("; ");
-
       const url = tab.url.startsWith("http") ? tab.url : `https://${tab.url}`;
 
-      const headers = cookieHeader
-        ? [
-            ...tab.headers,
-            {
-              id: Date.now(),
-              name: "Cookie",
-              value: cookieHeader,
-            },
-          ]
-        : tab.headers;
+      const headers = tab.headers;
 
       const res = (await sendRequest(
         tab.method,
@@ -385,14 +372,28 @@ export function Container(props: { collection: string }) {
         tab.method === "GET" ? null : tab.body,
       )) as ResponseData;
 
-      console.log(res);
+      // console.log(res);
 
-      await updateActiveTab((t) => ({
-        ...t,
-        response: res,
-        error: null,
-        loading: false,
-      }));
+      await updateActiveTab((t) => {
+        const headers = res.cookies
+          ? [
+              ...tab.headers.filter((h) => h.name.toLowerCase() !== "cookie"),
+              {
+                id: Date.now(),
+                name: "Cookie",
+                value: res.cookies,
+              },
+            ]
+          : tab.headers;
+
+        return {
+          ...t,
+          response: res,
+          headers,
+          error: null,
+          loading: false,
+        };
+      });
     } catch (err: any) {
       await updateActiveTab((t) => ({
         ...t,
