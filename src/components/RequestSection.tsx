@@ -3,6 +3,7 @@ import { FiPlus, FiX } from "solid-icons/fi";
 
 import { BodyType, RequestTab } from "./Container";
 import ErrorPopup from "./ErrorPopup";
+import { Portal } from "solid-js/web";
 
 type RequestSectionProps = {
   handleSubmit: (e: SubmitEvent) => Promise<void>;
@@ -37,13 +38,42 @@ type RequestSectionProps = {
 
 export function RequestSection(props: RequestSectionProps) {
   const [showError, setShowError] = createSignal<boolean>(true);
+  const [methodOpen, setMethodOpen] = createSignal(false);
+  const [methodMenuDirection, setMethodMenuDirection] = createSignal<
+    "top" | "bottom"
+  >("bottom");
 
+  const [methodMenuPos, setMethodMenuPos] = createSignal({
+    left: 0,
+    top: 0,
+    bottom: 0,
+  });
+
+  const [headerOpenId, setHeaderOpenId] = createSignal<number | null>(null);
+  const [headerMenuPos, setHeaderMenuPos] = createSignal({
+    left: 0,
+    top: 0,
+    bottom: 0,
+  });
+  const [headerMenuDirection, setHeaderMenuDirection] = createSignal<
+    "top" | "bottom"
+  >("top");
   const visibleError = createMemo(() => {
     if (!showError()) return null;
     return props.activeTab.error;
   });
 
-  const methods = ["GET", "POST", "PUT", "DELETE", "PATCH"];
+  const methods = [
+    "GET",
+    "POST",
+    "PUT",
+    "DELETE",
+    "PATCH",
+    "HEAD",
+    "OPTIONS",
+    // "CONNECT",
+    // "TRACE",
+  ];
 
   return (
     <section
@@ -60,30 +90,102 @@ export function RequestSection(props: RequestSectionProps) {
         class="space-y-4"
       >
         {/* Sticky bar */}
-        <div class="sticky top-0 z-10 flex gap-2 border-b border-zinc-800 bg-zinc-900/80 pb-2 backdrop-blur overflow-x-scroll">
+        <div class="sticky top-0 z-10 flex gap-2 border-b border-zinc-800 bg-zinc-900/80 pb-2 backdrop-blur ">
           {/* Method */}
-          <select
-            value={props.activeTab.method}
-            onInput={async (e) => {
-              const value = e.currentTarget.value;
+          <div class="relative shrink-0 z-50">
+            <button
+              type="button"
+              class={`flex items-center gap-2 rounded-md border border-zinc-700 bg-zinc-900 px-2.5 py-1.5 text-sm font-semibold transition-colors hover:bg-zinc-800 ${
+                props.METHOD_COLOR[props.activeTab.method]
+              }`}
+              onClick={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
 
-              await props.updateActiveTab((tab) => ({
-                ...tab,
-                method: value,
-              }));
-            }}
-            class={`appearance-none rounded-md border border-zinc-700 bg-zinc-900 px-2 py-1 text-sm font-semibold ${
-              props.METHOD_COLOR[props.activeTab.method]
-            }`}
-          >
-            <For each={methods}>
-              {(method) => (
-                <option value={method} class={props.METHOD_COLOR[method]}>
-                  {method}
-                </option>
-              )}
-            </For>
-          </select>
+                const menuHeight = methods.length * 32 + 8;
+
+                const spaceAbove = rect.top - 8;
+                const spaceBelow = window.innerHeight - rect.bottom - 8;
+
+                setMethodMenuPos({
+                  left: rect.left,
+                  top: rect.top,
+                  bottom: rect.bottom,
+                });
+
+                setMethodMenuDirection(
+                  spaceBelow >= menuHeight || spaceBelow >= spaceAbove
+                    ? "bottom"
+                    : "top",
+                );
+
+                setMethodOpen((open) => !open);
+              }}
+            >
+              {props.activeTab.method}
+
+              <svg
+                class="h-3.5 w-3.5 text-zinc-500"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 111.08 1.04l-4.25 4.51a.75.75 0 01-1.08 0l-4.25-4.51a.75.75 0 01.02-1.06z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            </button>
+
+            <Show when={methodOpen()}>
+              <Portal>
+                <div
+                  class="fixed z-50 min-w-30 max-w-50 overflow-y-auto rounded-lg border border-zinc-700 bg-zinc-900 p-1 shadow-2xl"
+                  style={{
+                    left: `${methodMenuPos().left}px`,
+                    top:
+                      methodMenuDirection() === "top"
+                        ? `${methodMenuPos().top - 4}px`
+                        : `${methodMenuPos().bottom + 4}px`,
+                    transform:
+                      methodMenuDirection() === "top"
+                        ? "translateY(-100%)"
+                        : "none",
+                    "max-height": `${
+                      methodMenuDirection() === "top"
+                        ? Math.max(methodMenuPos().top - 8, 100)
+                        : Math.max(
+                            window.innerHeight - methodMenuPos().bottom - 8,
+                            100,
+                          )
+                    }px`,
+                  }}
+                >
+                  <For each={methods}>
+                    {(method) => (
+                      <button
+                        type="button"
+                        class={`w-full rounded-md px-3 py-1.5 text-left text-sm
+              font-semibold transition-colors
+              hover:bg-zinc-800
+              ${props.METHOD_COLOR[method]}
+              ${props.activeTab.method === method ? "bg-zinc-800" : ""}`}
+                        onClick={async () => {
+                          await props.updateActiveTab((tab) => ({
+                            ...tab,
+                            method,
+                          }));
+
+                          setMethodOpen(false);
+                        }}
+                      >
+                        {method}
+                      </button>
+                    )}
+                  </For>
+                </div>
+              </Portal>
+            </Show>
+          </div>
 
           {/* URL */}
           <input
@@ -142,54 +244,154 @@ export function RequestSection(props: RequestSectionProps) {
                     }`}
                   >
                     {/* Header selector */}
-                    <select
-                      value={h.isCustom ? "Custom" : h.name}
-                      onInput={async (e) => {
-                        const value = e.currentTarget.value;
+                    <div class="relative shrink-0 ">
+                      <button
+                        type="button"
+                        class="flex w-40 items-center justify-between gap-2 rounded-md border border-zinc-700 bg-zinc-900 px-2 py-1 text-left text-xs transition-colors hover:bg-zinc-800"
+                        onClick={(e) => {
+                          const rect = e.currentTarget.getBoundingClientRect();
 
-                        if (value === "Custom") {
-                          setLocalName("");
-                        } else {
-                          setLocalName(value);
-                        }
-
-                        await props.updateActiveTab((tab) => ({
-                          ...tab,
-                          headers: tab.headers.map((hdr) =>
-                            hdr.id === h.id
-                              ? {
-                                  ...hdr,
-                                  name: value === "Custom" ? "" : value,
-                                  isCustom: value === "Custom",
-                                }
-                              : hdr,
-                          ),
-                        }));
-                      }}
-                      class="w-40 appearance-none rounded-md border border-zinc-700 bg-zinc-900 px-2 py-1 text-xs"
-                    >
-                      <For
-                        each={props.COMMON_HEADERS.filter((header) => {
-                          // Always show current header
-                          if (header === h.name) {
-                            return true;
-                          }
-
-                          // Don't show headers already used
-                          return !props.activeTab.headers.some(
-                            (existing) =>
-                              existing.id !== h.id &&
-                              existing.name.toLowerCase() ===
-                                header.toLowerCase(),
+                          const menuHeight = Math.min(
+                            props.COMMON_HEADERS.length * 30 + 8,
+                            window.innerHeight - 16,
                           );
-                        })}
-                      >
-                        {(header) => <option value={header}>{header}</option>}
-                      </For>
 
-                      {/* Custom option */}
-                      <option value="Custom">Custom</option>
-                    </select>
+                          const spaceAbove = rect.top - 8;
+
+                          setHeaderMenuPos({
+                            left: rect.left,
+                            top: rect.top,
+                            bottom: rect.bottom,
+                          });
+
+                          setHeaderMenuDirection(
+                            spaceAbove >= menuHeight ? "top" : "bottom",
+                          );
+
+                          setHeaderOpenId((current) =>
+                            current === h.id ? null : h.id,
+                          );
+                        }}
+                      >
+                        <span class="truncate">
+                          {h.isCustom ? "Custom" : h.name || "Select header"}
+                        </span>
+
+                        <svg
+                          class="h-3.5 w-3.5 shrink-0 text-zinc-500"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fill-rule="evenodd"
+                            d="M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 111.08 1.04l-4.25 4.51a.75.75 0 01-1.08 0l-4.25-4.51a.75.75 0 01.02-1.06z"
+                            clip-rule="evenodd"
+                          />
+                        </svg>
+                      </button>
+
+                      <Show when={headerOpenId() !== null}>
+                        {(() => {
+                          const activeHeader = () =>
+                            props.activeTab.headers.find(
+                              (h) => h.id === headerOpenId(),
+                            );
+
+                          return (
+                            <Show when={activeHeader()}>
+                              {(h) => (
+                                <Portal>
+                                  <div
+                                    class="fixed z-50 w-40 overflow-y-auto rounded-lg border border-zinc-700 bg-zinc-900 p-1 shadow-2xl"
+                                    style={{
+                                      left: `${headerMenuPos().left}px`,
+                                      top:
+                                        headerMenuDirection() === "top"
+                                          ? `${headerMenuPos().top - 4}px`
+                                          : `${headerMenuPos().bottom + 4}px`,
+                                      transform:
+                                        headerMenuDirection() === "top"
+                                          ? "translateY(-100%)"
+                                          : "none",
+                                      "max-height": `${
+                                        headerMenuDirection() === "top"
+                                          ? Math.max(
+                                              headerMenuPos().top - 8,
+                                              100,
+                                            )
+                                          : Math.max(
+                                              window.innerHeight -
+                                                headerMenuPos().bottom -
+                                                8,
+                                              100,
+                                            )
+                                      }px`,
+                                    }}
+                                  >
+                                    <For
+                                      each={[
+                                        ...props.COMMON_HEADERS.filter(
+                                          (header) => {
+                                            if (header === h().name)
+                                              return true;
+
+                                            return !props.activeTab.headers.some(
+                                              (existing) =>
+                                                existing.id !== h().id &&
+                                                existing.name.toLowerCase() ===
+                                                  header.toLowerCase(),
+                                            );
+                                          },
+                                        ),
+                                        "Custom",
+                                      ]}
+                                    >
+                                      {(header) => (
+                                        <button
+                                          type="button"
+                                          class={`block w-full rounded-md px-2.5 py-1.5 text-left text-xs transition-colors hover:bg-zinc-800 ${
+                                            (h().isCustom
+                                              ? "Custom"
+                                              : h().name) === header
+                                              ? "bg-zinc-800 text-zinc-100"
+                                              : "text-zinc-300"
+                                          }`}
+                                          onClick={async () => {
+                                            await props.updateActiveTab(
+                                              (tab) => ({
+                                                ...tab,
+                                                headers: tab.headers.map(
+                                                  (hdr) =>
+                                                    hdr.id === h().id
+                                                      ? {
+                                                          ...hdr,
+                                                          name:
+                                                            header === "Custom"
+                                                              ? ""
+                                                              : header,
+                                                          isCustom:
+                                                            header === "Custom",
+                                                        }
+                                                      : hdr,
+                                                ),
+                                              }),
+                                            );
+
+                                            setHeaderOpenId(null);
+                                          }}
+                                        >
+                                          {header}
+                                        </button>
+                                      )}
+                                    </For>
+                                  </div>
+                                </Portal>
+                              )}
+                            </Show>
+                          );
+                        })()}
+                      </Show>
+                    </div>
 
                     {/* Custom header name */}
                     <Show when={h.isCustom}>
@@ -257,7 +459,16 @@ export function RequestSection(props: RequestSectionProps) {
               onInput={async (e) => {
                 await props.updateBodyType(e.currentTarget.value as BodyType);
               }}
-              disabled={props.activeTab.method === "GET"}
+              disabled={(() => {
+                switch (props.activeTab.method) {
+                  case "GET":
+                  case "HEAD":
+                    // case "TRACE":
+                    return true;
+                  default:
+                    return false;
+                }
+              })()}
               class="rounded-md border border-zinc-700 bg-zinc-900 px-2 py-1 text-xs text-zinc-300 outline-none focus:border-zinc-500 disabled:opacity-50"
             >
               <option value="none">None</option>

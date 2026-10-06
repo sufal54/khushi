@@ -1,6 +1,8 @@
 import { fetch } from "@tauri-apps/plugin-http";
 import type { RequestHeader, ResponseData } from "./types";
 
+const KHUSHI_USER_AGENT = "Khushi/0.1.4";
+
 export async function sendRequest(
   method: string,
   url: string,
@@ -12,6 +14,16 @@ export async function sendRequest(
   for (const h of headers) {
     if (!h.name?.trim()) continue;
     headerMap[h.name.trim()] = h.value?.trim() ?? "";
+  }
+
+  const userAgentKey = Object.keys(headerMap).find(
+    (key) => key.toLowerCase() === "user-agent",
+  );
+
+  if (userAgentKey) {
+    headerMap[userAgentKey] = KHUSHI_USER_AGENT;
+  } else {
+    headerMap["User-Agent"] = KHUSHI_USER_AGENT;
   }
 
   const options: RequestInit = {

@@ -46,12 +46,13 @@ const COMMON_HEADERS = [
   "Content-Type",
   "Authorization",
   "Accept",
-  "User-Agent",
+
   "Cache-Control",
   "Accept-Encoding",
   "Accept-Language",
   "Cookie",
   "X-API-Key",
+  "Origin",
 ];
 
 const METHOD_COLOR: Record<string, string> = {
@@ -60,6 +61,10 @@ const METHOD_COLOR: Record<string, string> = {
   PUT: "text-yellow-400",
   DELETE: "text-red-400",
   PATCH: "text-purple-400",
+  HEAD: "text-cyan-400",
+  OPTIONS: "text-orange-400",
+  // CONNECT: "text-pink-400",
+  // TRACE: "text-gray-400",
 };
 
 function createEmptyTab(): RequestTab {
