@@ -105,7 +105,7 @@ export function Container(props: { collection: string }) {
 
   const [activeResponseTab, setActiveResponseTab] = createSignal<
     "body" | "headers" | "cookies" | null
-  >("body");
+  >("headers");
 
   const [activeTabId, setActiveTabId] = createSignal<string | null>(null);
 
@@ -399,6 +399,10 @@ export function Container(props: { collection: string }) {
           loading: false,
         };
       });
+
+      setActiveResponseTab(
+        res.body?.toString().trim().length > 0 ? "body" : "headers",
+      );
     } catch (err: any) {
       await updateActiveTab((t) => ({
         ...t,

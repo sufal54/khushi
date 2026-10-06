@@ -56,19 +56,6 @@ export default function ResponseSection(props: ResponseSectionProps) {
 
         {/* Tabs */}
         <div class="mb-2 flex gap-2">
-          {/* Body */}
-          <button
-            type="button"
-            onClick={async () => await toggleResponseTab("body")}
-            class={`rounded px-3 py-1 text-xs ${
-              props.activeResponseTab === "body"
-                ? "bg-zinc-800 text-white"
-                : "bg-zinc-900 text-zinc-400"
-            }`}
-          >
-            Body
-          </button>
-
           {/* Headers */}
           <button
             type="button"
@@ -81,6 +68,21 @@ export default function ResponseSection(props: ResponseSectionProps) {
           >
             Headers
           </button>
+
+          {/* Body */}
+          <Show when={props.activeTab.response?.body}>
+            <button
+              type="button"
+              onClick={async () => await toggleResponseTab("body")}
+              class={`rounded px-3 py-1 text-xs ${
+                props.activeResponseTab === "body"
+                  ? "bg-zinc-800 text-white"
+                  : "bg-zinc-900 text-zinc-400"
+              }`}
+            >
+              Body
+            </button>
+          </Show>
 
           {/* Cookies */}
           <button
